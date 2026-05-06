@@ -1,0 +1,12 @@
+# ==============================================================================
+# VERTEX AI MESH PROFILER - DEPENDENCY MATRIX
+# ==============================================================================
+
+# Core SDK required for Multi-Region Endpoint (mREP) routing.
+# Forcing version >= 0.8.0 to ensure strict compliance with modern global 
+# load balancing and location="us" / location="eu" string parsing.
+google-genai>=0.8.0
+
+# Note: No additional dependencies (like PyQt or Requests) are required. 
+# This application relies strictly on Python standard libraries 
+# (tkinter, threading, argparse, time, sys) to minimize attack surface.
