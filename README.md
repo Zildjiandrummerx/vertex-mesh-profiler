@@ -91,9 +91,9 @@ Use Multi-Region (us / eu) for Residency: Only use the continental endpoints if 
 Dual-Version Testing: Always compare v1 (Stable/GA) against v1beta1 (Preview). Preview versions often contain "Experimental" hardware configurations that may yield different latency profiles.
 
 ### References
-[Generative AI on Vertex AI Locations](https://docs.cloud.google.com/vertex-ai/docs/general/locations)
-[Vertex AI Data Residency](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/locations)
-[Google Gen AI Python SDK Overview](https://docs.cloud.google.com/python/docs/reference/vertexai/latest)
-[Set up Application Default Credentials](https://docs.cloud.google.com/docs/authentication/provide-credentials-adc)
-[Vertex AI Service Endpoints](https://docs.cloud.google.com/vertex-ai/docs/reference/rest)
-[Gemini Model Versioning](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/model-versions)
+* [Generative AI on Vertex AI Locations](https://docs.cloud.google.com/vertex-ai/docs/general/locations)
+* [Vertex AI Data Residency](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/locations)
+* [Google Gen AI Python SDK Overview](https://docs.cloud.google.com/python/docs/reference/vertexai/latest)
+* [Set up Application Default Credentials](https://docs.cloud.google.com/docs/authentication/provide-credentials-adc)
+* [Vertex AI Service Endpoints](https://docs.cloud.google.com/vertex-ai/docs/reference/rest)
+* [Gemini Model Versioning](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/model-versions)
