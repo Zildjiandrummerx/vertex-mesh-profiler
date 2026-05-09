@@ -1,0 +1,57 @@
+# ==============================================================================
+#  INFRASTRUCTURE - DOCKER IGNORE MATRIX
+# ==============================================================================
+# This file dictates what the Docker Daemon is FORBIDDEN to see.
+# Every file ignored here speeds up the build process and shrinks the 
+# attack surface of the final container image.
+# ==============================================================================
+
+# ==========================================
+# 1. VERSION CONTROL (BUILD OPTIMIZATION)
+# ==========================================
+# There is absolutely no reason for the container to have the git history.
+# Removing this saves MBs of space and prevents historical code exposure.
+.git
+.gitignore
+.gitattributes
+
+# ==========================================
+# 2. LOCAL ENVIRONMENT & DEPENDENCIES
+# ==========================================
+# Docker installs its own dependencies via requirements.txt. 
+# Copying local venv/ directories creates massive overhead and OS conflicts.
+venv
+.venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# ==========================================
+# 3. SECRETS & LOCAL OVERRIDES (ZERO TRUST)
+# ==========================================
+# The container should receive its secrets dynamically at runtime (via Cloud Run, 
+# K8s Secrets, or Secret Manager). Hardcoded local .env files must be blocked.
+.env
+.env.*
+*.pem
+credentials.json
+
+# ==========================================
+# 4. THE LEGACY MONOLITH (QUARANTINED)
+# ==========================================
+# Do not bake the old script into the new container. 
+# It adds unnecessary weight and clutter.
+mesh-profiler.py
+*.bak
+
+# ==========================================
+# 5. DOCKER & IDE METADATA
+# ==========================================
+# Prevent inception-style recursion and IDE clutter.
+Dockerfile
+.dockerignore
+.vscode
+.idea
+.DS_Store

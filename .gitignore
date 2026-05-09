@@ -1,2 +1,59 @@
-__pycache__/
+# ==============================================================================
+#   INFRASTRUCTURE - GIT IGNORE MATRIX
+# ==============================================================================
+# This file governs the version control security perimeter. 
+# It strictly blocks secrets, local environments, and compiled artifacts 
+# from ever reaching the remote repository (GitHub/GitLab).
+# ==============================================================================
+
+# ==========================================
+# 1. SECRETS & ENVIRONMENT VARIABLES (CRITICAL)
+# ==========================================
+# Never commit .env files. They contain API keys, database URIs, and GCP credentials.
+# If these leak, bots will scrape them within seconds.
 .env
+.env.*
+*.pem
+credentials.json
+client_secret.json
+
+# ==========================================
+# 2. THE LEGACY MONOLITH (QUARANTINED)
+# ==========================================
+# The original script is retained locally for reference but blocked from Git 
+# to prevent cluttering the new modular architecture.
+mesh-profiler.py
+*.bak
+*.old
+
+# ==========================================
+# 3. PYTHON CACHE & VIRTUAL ENVIRONMENTS
+# ==========================================
+# Blocks compiled bytecode and local dependencies. 
+# Dependencies should only be resolved via requirements.txt or Docker.
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ==========================================
+# 4. OS SPECIFIC METADATA & IDE CONFIGS
+# ==========================================
+# Prevents developer-specific settings from overwriting team settings.
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==========================================
+# 5. TESTING & COVERAGE ARTIFACTS
+# ==========================================
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/

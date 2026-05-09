@@ -7,6 +7,17 @@
 # load balancing and location="us" / location="eu" string parsing.
 google-genai>=0.8.0
 
-# Note: No additional dependencies (like PyQt or Requests) are required. 
-# This application relies strictly on Python standard libraries 
-# (tkinter, threading, argparse, time, sys) to minimize attack surface.
+# Note: The underlying CLI Core relies strictly on Python standard libraries 
+# (threading, argparse, time, sys) to minimize the attack surface. 
+# However, to support the mandated Docker containerization and future Web UI 
+# integration, the secure WSGI server and Flask framework dependencies 
+# are strictly pinned below.
+
+# ==============================================================================
+# WEB UI, CONTAINER & SECURITY DEPENDENCIES (FLASK / GUNICORN)
+# ==============================================================================
+Flask>=3.0.0
+Flask-WTF>=1.2.1
+Flask-Limiter>=3.5.0
+Werkzeug>=3.0.1
+gunicorn>=21.2.0
