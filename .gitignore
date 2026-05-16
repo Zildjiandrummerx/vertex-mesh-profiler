@@ -39,6 +39,8 @@ venv/
 env/
 pip-log.txt
 pip-delete-this-directory.txt
+script.py
+test_2.py
 
 # ==========================================
 # 4. OS SPECIFIC METADATA & IDE CONFIGS
