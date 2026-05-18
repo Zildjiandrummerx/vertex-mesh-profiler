@@ -15,7 +15,8 @@ When architecting AI applications, choosing a region is not just about proximity
 Before execution, ensure the following are configured in your Google Cloud environment:
 * **Vertex AI API Enabled:** Run `gcloud services enable aiplatform.googleapis.com`.
 * **Permissions:** Your identity must have the `roles/aiplatform.user` role.
-* **Project ID:** Open `mesh-profiler.py` and set `PROJECT_ID` to your target Google Cloud Project ID.
+* **Project ID Configuration:** Open `app/core/config.py` (or set your environment variable) to point to your target Google Cloud Project ID.
+* **Partner Model EULAs (Critical):** If you are testing third-party models (e.g., Anthropic Claude, Meta Llama, Mistral), you **must** explicitly enable them and accept their End User License Agreement (EULA) in the [Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) for your specific project *before* running the script. Failure to do so will result in a false-negative `404 Not Found` error.
 
 ---
 
@@ -26,7 +27,7 @@ The profiler uses Application Default Credentials (ADC). Authenticate your local
 ```bash
 gcloud auth application-default login
 ```
-(Note: If running inside Google Cloud Shell, copy the generated .json file to your local directory as local_keys.json to prevent ephemeral /tmp deletion).
+(Note: If running inside Google Cloud Shell, copy the generated `.json file` to your local directory as `local_keys.json` to prevent ephemeral `/tmp` deletion).
 
 ### Step 2: Run the Profiler
 Option A: Local Development (Standard)
@@ -50,7 +51,7 @@ docker build -t vertex-mesh-profiler .
 ```
 Run the interactive CLI within the container.
 
-For Google Cloud Shell (Using the local_keys.json workaround):
+For Google Cloud Shell (Using the `local_keys.json` workaround):
 
 ```bash
 docker run --rm -it \
@@ -86,9 +87,9 @@ Interpreting Results
 | 501 (Not Implemented) | Dark Region          | Vertex AI Generative AI services are not yet enabled in this datacenter.        |
 
 ### Architectural Best Practices
-Use the global Endpoint: For general-purpose apps, the global endpoint offers the highest availability and automatically routes to the healthiest regional cluster.
-Use Multi-Region (us / eu) for Residency: Only use the continental endpoints if your security policy mandates that data remains within US or EU borders.
-Dual-Version Testing: Always compare v1 (Stable/GA) against v1beta1 (Preview). Preview versions often contain "Experimental" hardware configurations that may yield different latency profiles.
+* **Use the global Endpoint:** For general-purpose apps, the global endpoint offers the highest availability and automatically routes to the healthiest regional cluster.
+* **Use Multi-Region (us / eu) for Residency:** Only use the continental endpoints if your security policy mandates that data remains within US or EU borders.
+* **Dual-Version Testing:** Always compare v1 (Stable/GA) against v1beta1 (Preview). Preview versions often contain "Experimental" hardware configurations that may yield different latency profiles.
 
 ### References
 * [Generative AI on Vertex AI Locations](https://docs.cloud.google.com/vertex-ai/docs/general/locations)
