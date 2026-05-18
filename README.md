@@ -5,18 +5,19 @@ The **Vertex AI Mesh Profiler** is an enterprise-grade diagnostic engine designe
 
 When architecting AI applications, choosing a region is not just about proximity; it's about hardware availability and model propagation. This tool allows Cloud Architects to identify "Champion" regions and "Hardware Deserts" before deploying production code.
 
-## Core Objectives
-* **Latency Baselines:** Establish Min/Max/Avg latency for specific models across the globe.
+## Advanced Diagnostic Engine & Core Objectives
+* **Tri-State Polyglot Execution:** Natively supports routing for Google Gemini, Partner Models (Anthropic), and Open-MaaS models (Meta Llama, Mistral, xAI Grok, DeepSeek).
+* **Dynamic Load Profiles:** Intelligently scales prompt complexity based on user-requested token caps to accurately measure **TTFT** (Time-To-First-Token) versus sustained **TPS** (Tokens Per Second).
+* **Percentile Heuristic Engine:** Dynamically ranks the Top 33% of datacenters per run to identify champion routing architectures regardless of model size.
 * **Capacity Discovery:** Detect regions with `429 Resource Exhausted` or `400 Precondition Failed` (missing TPU/GPU clusters).
-* **Deployment Mapping:** Verify if a specific model version (e.g., `gemini-2.5-flash`) has reached a regional registry (`404` check).
-* **Compliance Verification:** Test Multi-Region Endpoints (mREPs) for strict Data Residency requirements.
+* **Deployment Mapping:** Verify if a specific model version has reached a regional registry (`404` check).
 
 ## Prerequisites
 Before execution, ensure the following are configured in your Google Cloud environment:
 * **Vertex AI API Enabled:** Run `gcloud services enable aiplatform.googleapis.com`.
 * **Permissions:** Your identity must have the `roles/aiplatform.user` role.
 * **Project ID Configuration:** Open `app/core/config.py` (or set your environment variable) to point to your target Google Cloud Project ID.
-* **Partner Model EULAs (Critical):** If you are testing third-party models (e.g., Anthropic Claude, Meta Llama, Mistral), you **must** explicitly enable them and accept their End User License Agreement (EULA) in the [Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) for your specific project *before* running the script. Failure to do so will result in a false-negative `404 Not Found` error.
+* **Partner Model EULAs (Critical):** If you are testing third-party models (e.g., Anthropic Claude, Meta Llama, Mistral, xAI), you **must** explicitly enable them and accept their End User License Agreement (EULA) in the [Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) for your specific project *before* running the script. Failure to do so will result in a false-negative `404 Not Found` error.
 
 ---
 
@@ -27,22 +28,29 @@ The profiler uses Application Default Credentials (ADC). Authenticate your local
 ```bash
 gcloud auth application-default login
 ```
-(Note: If running inside Google Cloud Shell, copy the generated `.json file` to your local directory as `local_keys.json` to prevent ephemeral `/tmp` deletion).
+(Note: If running inside a browser-based Google Cloud Shell, copy the generated `.json file` to your local directory as `local_keys.json` to prevent ephemeral `/tmp` deletion, the credentials file is often deleted when the ephemeral container spins down). 
+
+Run this exact command immediately after logging in to copy the credentials safely to your project folder:
+
+```bash
+cp ~/.config/gcloud/application_default_credentials.json ./local_keys.json
+```
 
 ### Step 2: Run the Profiler
-Option A: Local Development (Standard)
+**Option A:** Local Development (Standard)
 If you prefer running the script directly in a Python environment:
 
-# Install the modern Google Gen AI SDK
+# Install the required dependency matrix
 ```bash
-pip install --upgrade google-genai
+pip install -r requirements.txt
 ```
 
-# Run the profiler
+# Execute the CLI engine
 ```bash
-python mesh-profiler.py
+python cli.py
 ```
-Option B: Containerized Deployment (Recommended)
+
+**Option B:** Containerized Deployment (Recommended)
 To ensure consistent results across different machines without dependency conflicts, use the provided Docker configuration.
 
 Build the immutable image:
