@@ -12,7 +12,10 @@ fully compatible with future REST APIs or Flask Web UIs.
 ==============================================================================
 """
 
-from app.core.config import CYAN, GREEN, YELLOW, RED, NC, DEFAULT_PROMPT, API_VERSIONS
+from app.core.config import (
+    CYAN, GREEN, YELLOW, RED, NC, API_VERSIONS, 
+    PROMPT_DIAGNOSTIC, PROMPT_STANDARD, PROMPT_STRESS
+)
 from app.core.registries import MODELS, REGIONS
 from app.core.telemetry import TelemetryEngine
 
@@ -85,14 +88,47 @@ def run_cli():
     selected_locations = list(dict.fromkeys(selected_locations))
 
     # ========================================================================
+    # 3.5. DYNAMIC LOAD PROFILE (THE EDGES)
+    # ========================================================================
+    # Evaluates user input against specific boundaries to automatically scale 
+    # the complexity of the prompt. This ensures the GPU/TPU is actually stressed 
+    # rather than just finishing a simple prompt in 2 tokens.
+    print(f"\n{YELLOW}[+] Select Inference Load Profile{NC}")
+    token_input = input(f"[?] Enter Max Output Tokens [Press ENTER for Default: 20]: ").strip()
+    
+    # Defaulting mechanism
+    if not token_input:
+        max_tokens = 20
+    else:
+        try:
+            max_tokens = int(token_input)
+        except ValueError:
+            print(f"{RED}[!] Invalid input. Defaulting to 20 tokens.{NC}")
+            max_tokens = 20
+
+    # Boundary Evaluation (Edges)
+    if max_tokens <= 50:
+        tier_name = "Diagnostic Ping"
+        active_prompt = PROMPT_DIAGNOSTIC
+        physics_explanation = "Measuring Network Latency and Time-To-First-Token (TTFT). Sustained Token Velocity (TPS) will be mathematically lower due to HTTP handshake overhead."
+    elif max_tokens <= 500:
+        tier_name = "Standard Payload"
+        active_prompt = PROMPT_STANDARD
+        physics_explanation = "Forcing moderate computational load. Provides a balanced measurement of real-world API responsiveness and sustained Token Velocity (TPS)."
+    else:
+        tier_name = "Stress Test"
+        active_prompt = PROMPT_STRESS
+        physics_explanation = "Injecting complex prompt to force maximum GPU/TPU utilization. Exposes absolute sustained Token Velocity (TPS) and hardware throttling limits."
+
+    # ========================================================================
     # 4. METHODOLOGY HEADER & EXECUTION
     # ========================================================================
     print(f"\n{YELLOW}=================================================================================={NC}")
     print(f"{YELLOW}       BENCHMARK METHODOLOGY & INFRASTRUCTURE DIAGNOSTICS{NC}")
     print(f"{YELLOW}=================================================================================={NC}")
-    print(f" [+] Inference Cap : Output restricted to 20 tokens for rapid polling.")
+    print(f" [+] Inference Cap : {CYAN}{max_tokens} Tokens ({tier_name}){NC}")
+    print(f" [+] Physics       : {physics_explanation}")
     print(f" [+] Telemetry     : Captures Absolute Min, Max, and Average latency (sec).")
-    print(f" [+] Token Velocity: Output Tokens Per Second (TPS) across the run.")
     print(f"{YELLOW}=================================================================================={NC}\n")
 
     # Aggregator array used to generate the final Executive Summary metrics
@@ -101,8 +137,16 @@ def run_cli():
     # Iterates through every chosen location and tests both v1 and v1beta1 endpoints
     for loc in selected_locations:
         for api_ver in API_VERSIONS:
-            # Invokes the decoupled Telemetry Engine
-            res = TelemetryEngine.test_endpoint(selected_model, loc, api_ver, DEFAULT_PROMPT, use_cli_spinner=True)
+            # Invokes the decoupled Telemetry Engine with the dynamic payload
+            res = TelemetryEngine.test_endpoint(
+                model_id=selected_model, 
+                location=loc, 
+                api_version=api_ver, 
+                prompt=active_prompt, 
+                max_tokens=max_tokens, 
+                runs=3, 
+                use_cli_spinner=True
+            )
              
             if res["success"]:
                 # To keep the executive summary clean, we prioritize logging the 'v1' 
@@ -119,10 +163,10 @@ def run_cli():
                 print(f" └─ Diagnosis: {YELLOW}{res['error']}{NC}\n")
      
     # ========================================================================
-    # 5. HEURISTIC RECOMMENDATION ENGINE (EXECUTIVE SUMMARY)
+    # 5. PERCENTILE HEURISTIC ENGINE (EXECUTIVE SUMMARY)
     # ========================================================================
     # Only triggers if a multi-region scan was performed. Analyzes the aggregated
-    # telemetry data to recommend optimal routing architectures.
+    # telemetry data using a relative Percentile Baseline to recommend optimal routing.
     if len(selected_locations) > 1:
         print(f"\n{CYAN}==================================================================================================={NC}")
         print(f"{CYAN} EXECUTIVE SUMMARY: HIGH-PERFORMANCE ROUTING MAP ({selected_model}){NC}")
@@ -131,17 +175,26 @@ def run_cli():
         if not successful_hubs:
             print(f"\n {RED}[!] CRITICAL FAILURE: Zero successful connections detected.{NC}")
         else:
+            # Sort datacenters by TPS descending to prepare for percentile slicing
+            successful_hubs.sort(key=lambda x: x['tps'], reverse=True)
+            
             # Check if ONLY Macro-Regions (mREPs) were selected so we don't accidentally filter them out
             is_macro_only = all(loc in ['global', 'us', 'eu'] for loc in selected_locations)
             
-            # Segregates standard regions based on Token Velocity (TPS)
-            champions = [h['loc'] for h in successful_hubs if h['tps'] >= 15.0 and (is_macro_only or h['loc'] not in ['global', 'us', 'eu'])]
-            secondary = [h['loc'] for h in successful_hubs if h['tps'] < 15.0 and (is_macro_only or h['loc'] not in ['global', 'us', 'eu'])]
+            # Percentile Math: Top 33% are Champions (Minimum 1)
+            total_hubs = len(successful_hubs)
+            top_n = max(1, total_hubs // 3) if total_hubs > 1 else 1
+            
+            # Segregate datacenters based on their dynamic percentile rank
+            champions = [h['loc'] for h in successful_hubs[:top_n] if (is_macro_only or h['loc'] not in ['global', 'us', 'eu'])]
+            secondary = [h['loc'] for h in successful_hubs[top_n:] if (is_macro_only or h['loc'] not in ['global', 'us', 'eu'])]
              
-            if champions: 
-                print(f" {GREEN}[+] Primary Hubs (>15 TPS) :{NC} {', '.join(champions)}")
-            if secondary: 
-                print(f" {YELLOW}[~] Secondary Hubs (<15 TPS):{NC} {', '.join(secondary)}")
+            # Static formatting: prints "None" if the array is empty instead of disappearing
+            champ_str = ", ".join(champions) if champions else "None"
+            sec_str = ", ".join(secondary) if secondary else "None"
+            
+            print(f" {GREEN}[+] Primary Hubs (Top Percentile)  :{NC} {champ_str}")
+            print(f" {YELLOW}[~] Secondary Hubs (Mid/Low Tier)  :{NC} {sec_str}")
                 
             # THE REGIONAL DESERT FALLBACK
             # If localized datacenters failed or were unavailable for the model, explicitly highlight

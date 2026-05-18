@@ -1,13 +1,11 @@
 """
 ==============================================================================
 ENTERPRISE MULTI-MODEL GENAI FRAMEWORK
-MODULE: CORE TELEMETRY ENGINE (BARE-METAL UPGRADE)
+MODULE: CORE TELEMETRY ENGINE (TRI-STATE BARE-METAL UPGRADE)
 ==============================================================================
 """
 
-import time
-import requests
-import google.auth
+import time, requests, google.auth
 from google.auth.transport.requests import Request
 from typing import Dict
 from google import genai
@@ -28,21 +26,34 @@ class TelemetryEngine:
     
     @staticmethod
     def _resolve_publisher(model_id: str) -> str:
+        """Dynamically routes the model to its official Vertex AI publisher namespace."""
         m = model_id.lower()
         if "claude" in m: return "anthropic"
         if "mistral" in m or "codestral" in m: return "mistralai"
         if "deepseek" in m: return "deepseek-ai"
         if "llama" in m: return "meta"
+        if "qwen" in m: return "qwen"
+        if "kimi" in m: return "moonshotai"
+        if "minimax" in m: return "minimaxai"
+        if "glm" in m: return "zai"
+        if "gpt" in m: return "openai"
+        if "grok" in m: return "xai"
         return "google"
 
     @staticmethod
-    def test_endpoint(model_id: str, location: str, api_version: str, prompt: str, runs: int = 3, use_cli_spinner: bool = True) -> Dict:
+    def test_endpoint(model_id: str, location: str, api_version: str, prompt: str, max_tokens: int = 20, runs: int = 3, use_cli_spinner: bool = True) -> Dict:
+        """Executes the diagnostic benchmark against a specified model endpoint using dynamic token loads."""
         latencies = []
         token_count = 0
         success = False
         error_msg = ""
          
         publisher = TelemetryEngine._resolve_publisher(model_id)
+        
+        # Determine the architectural state
+        is_anthropic = (publisher == "anthropic")
+        is_google = (publisher == "google")
+        is_maas = not (is_anthropic or is_google) # Meta, xAI, Mistral, DeepSeek, etc.
         
         # ====================================================================
         # TOPOLOGICAL ROUTING MAP
@@ -52,8 +63,8 @@ class TelemetryEngine:
         effective_location = location
         rest_url = ""
         
-        if publisher == "anthropic":
-            # 1. ANTHROPIC TOPOLOGY (Strict Multi-Region mREP Routing)
+        if is_anthropic:
+            # ANTHROPIC TOPOLOGY (Strict Multi-Region mREP Routing)
             if location == "global":
                 base_domain = "aiplatform.googleapis.com"
             elif location in ["us", "eu"]:
@@ -61,23 +72,22 @@ class TelemetryEngine:
             else:
                 base_domain = f"{location}-aiplatform.googleapis.com"
                 
+            url_location = location
+            effective_location = location
             full_model_path = f"publishers/{publisher}/models/{model_id}"
             rest_url = f"https://{base_domain}/{api_version}/projects/{PROJECT_ID}/locations/{url_location}/{full_model_path}:rawPredict"
             
         else:
-            # 2. STANDARD / GOOGLE TOPOLOGY (generateContent mapping)
+            # STANDARD / MAAS TOPOLOGY (No .rep domains)
             if location == "global":
-                # Fixed: Global Endpoint does NOT use a prefix
                 base_domain = "aiplatform.googleapis.com"
                 url_location = "global"
                 effective_location = "global"
             elif location == "us":
-                # Fixed: Google US Macro maps to us-central1
                 base_domain = "us-central1-aiplatform.googleapis.com"
                 url_location = "us-central1"
                 effective_location = "us-central1"
             elif location == "eu":
-                # Fixed: Google EU Macro maps to europe-west1
                 base_domain = "europe-west1-aiplatform.googleapis.com"
                 url_location = "europe-west1"
                 effective_location = "europe-west1"
@@ -86,28 +96,41 @@ class TelemetryEngine:
                 url_location = location
                 effective_location = location
 
-            full_model_path = f"publishers/{publisher}/models/{model_id}"
-            rest_url = f"https://{base_domain}/{api_version}/projects/{PROJECT_ID}/locations/{url_location}/{full_model_path}:generateContent"
+            if is_google:
+                full_model_path = f"publishers/{publisher}/models/{model_id}"
+                rest_url = f"https://{base_domain}/{api_version}/projects/{PROJECT_ID}/locations/{url_location}/{full_model_path}:generateContent"
+            else:
+                # MAAS OPENAI-COMPATIBLE ROUTING
+                rest_url = f"https://{base_domain}/{api_version}/projects/{PROJECT_ID}/locations/{url_location}/endpoints/openapi/chat/completions"
 
         spinner = ProgressVisualizer(location, api_version, runs) if use_cli_spinner else None
         if spinner: spinner.start()
          
         try:
             # ====================================================================
-            # BARE-METAL POLYGLOT EXECUTION
+            # TRI-STATE POLYGLOT EXECUTION
             # ====================================================================
-            if publisher == "anthropic":
-                # BRANCH A: Pure HTTP REST for Partner Models (No SDK Abstraction)
+            if is_anthropic or is_maas:
+                # BRANCH A & B: Pure HTTP REST for Partner/MaaS Models
                 token = TelemetryEngine._get_gcp_token()
                 headers = {
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json"
                 }
-                payload = {
-                    "anthropic_version": "vertex-2023-10-16",
-                    "max_tokens": 20,
-                    "messages": [{"role": "user", "content": prompt}]
-                }
+                
+                # Payload structures diverge based on the API target
+                if is_anthropic:
+                    payload = {
+                        "anthropic_version": "vertex-2023-10-16",
+                        "max_tokens": max_tokens, # Dynamically scaled load profile
+                        "messages": [{"role": "user", "content": prompt}]
+                    }
+                else: # is_maas
+                    payload = {
+                        "model": f"{publisher}/{model_id}", # Open API requires the publisher prefix here
+                        "max_tokens": max_tokens, # Dynamically scaled load profile
+                        "messages": [{"role": "user", "content": prompt}]
+                    }
                 
                 for i in range(runs):
                     if spinner: spinner.set_run(i + 1)
@@ -119,25 +142,38 @@ class TelemetryEngine:
                     if response.status_code == 200:
                         latencies.append(end_time - start_time)
                         data = response.json()
-                        tokens = data.get("usage", {}).get("output_tokens", 20)
+                        
+                        # Extract exact token usage (falls back to requested max_tokens if API omits metadata)
+                        if is_anthropic:
+                            tokens = data.get("usage", {}).get("output_tokens", max_tokens)
+                        else:
+                            # OpenAI format returns completion_tokens
+                            tokens = data.get("usage", {}).get("completion_tokens", max_tokens)
+                        
                         token_count += tokens
                     else:
-                        raise Exception(f"HTTP {response.status_code}: {response.text}")
+                        # Translate standard HTTP codes for seamless UI mapping
+                        if response.status_code == 404:
+                            raise Exception(f"HTTP 404 (NOT FOUND): Model/version missing from regional catalog or EULA unaccepted. Details: {response.text}")
+                        elif response.status_code == 400:
+                            raise Exception(f"HTTP 400 (PRECONDITION FAILED): Hardware/Quota restriction or invalid location. Details: {response.text}")
+                        else:
+                            raise Exception(f"HTTP {response.status_code}: {response.text}")
                     
                     time.sleep(1)
                     
                 success = True
 
             else:
-                # BRANCH B: Native genai SDK for Google/Meta/Mistral
+                # BRANCH C: Native genai SDK for Google Models
                 client = genai.Client(
                     vertexai=True, 
                     project=PROJECT_ID, 
                     location=effective_location,
-                    # Base URL correctly forces the exact domain mapped above
                     http_options=HttpOptions(api_version=api_version, base_url=f"https://{base_domain}")
                 )
-                config = GenerateContentConfig(max_output_tokens=20)
+                # Dynamically configure the inference cap based on user selection
+                config = GenerateContentConfig(max_output_tokens=max_tokens)
 
                 for i in range(runs):
                     if spinner: spinner.set_run(i + 1) 
@@ -149,9 +185,9 @@ class TelemetryEngine:
                     
                     try:
                         tokens = response.usage_metadata.candidates_token_count
-                        token_count += tokens if tokens is not None else 20 
+                        token_count += tokens if tokens is not None else max_tokens 
                     except AttributeError:
-                        token_count += 20
+                        token_count += max_tokens
                     time.sleep(1)
 
                 success = True
