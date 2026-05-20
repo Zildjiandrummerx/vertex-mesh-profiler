@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertex AI Mesh Profiler</title>
+    
+    <!-- Link to the custom Manjaro Dark stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Enterprise Typography: Inter for UI elements, JetBrains Mono for telemetry data -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Professional Enterprise Iconography -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ======================================================================= -->
+    <!-- HEADER: BRANDING & SYSTEM STATUS                                        -->
+    <!-- ======================================================================= -->
+    <header class="topbar">
+        <div class="brand">
+            <span class="logo-pulse"></span>
+            <h1>VERTEX AI <span>MESH PROFILER</span></h1>
+        </div>
+        <div class="status-indicator">SYSTEM: <span class="text-highlight">ONLINE</span></div>
+    </header>
+
+    <!-- ======================================================================= -->
+    <!-- MAIN DASHBOARD GRID (3-COLUMN CSS GRID)                                 -->
+    <!-- ======================================================================= -->
+    <main class="dashboard-grid">
+        
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 1: THE CONTROL MATRIX (User Inputs & Payload Configuration)  -->
+        <!-- ------------------------------------------------------------------- -->
+        <section class="panel control-matrix">
+            <h2><i class="fas fa-sliders-h me-2"></i> Telemetry Parameters</h2>
+            
+            <!-- Model Selection Dropdown: Populated dynamically via Jinja2 from registries.py -->
+            <div class="input-group">
+                <label for="model-select">Target Model</label>
+                <select id="model-select" class="cyber-select">
+                    {% for group_name, model_list in models.items() %}
+                        <optgroup label="{{ group_name }}">
+                            {% for model in model_list %}
+                                <option value="{{ model }}">{{ model }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Regional Scope Toggle: Dictates if the user sees single datacenters, groups, or global sweeps -->
+            <div class="input-group">
+                <label>Routing Scope</label>
+                <div class="radio-pill-group">
+                    <input type="radio" id="scope-single" name="scope" value="single" checked>
+                    <label for="scope-single">Single</label>
+                    
+                    <input type="radio" id="scope-group" name="scope" value="group">
+                    <label for="scope-group">Group</label>
+                    
+                    <input type="radio" id="scope-sweep" name="scope" value="sweep">
+                    <label for="scope-sweep">Sweep</label>
+                </div>
+            </div>
+
+            <!-- Dynamic Region Dropdown: Options are injected via JavaScript based on the Routing Scope selected above -->
+            <div class="input-group" id="region-container">
+                <label for="region-select">Target Location(s)</label>
+                <select id="region-select" class="cyber-select">
+                    <!-- Populated dynamically by app.js -->
+                </select>
+            </div>
+
+            <!-- Dynamic Load Profile Slider: Controls the token count and auto-adjusts the underlying prompt payload -->
+            <div class="input-group load-profile-group">
+                <label for="token-slider">Inference Cap (Tokens): <span id="token-display" class="text-highlight">20</span></label>
+                <input type="range" id="token-slider" min="1" max="1024" value="20" class="cyber-slider">
+                
+                <!-- This info box changes text/color via JS based on the slider thresholds (Edges) -->
+                <div id="profile-explanation" class="info-box diagnostic-box">
+                    <strong>Diagnostic Ping</strong><br>
+                    Measuring Network Latency and TTFT. Sustained TPS will appear mathematically lower due to handshake overhead.
+                </div>
+            </div>
+
+            <!-- Execution Trigger: Disables during active scans to prevent concurrent API flooding -->
+            <button id="btn-initiate" class="cyber-btn">INITIATE PROFILER</button>
+        </section>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 2: THE GEOSPATIAL PIPELINE (Live Map & Ping Visualizer)      -->
+        <!-- ------------------------------------------------------------------- -->
+        <section class="panel map-panel">
+            <h2><i class="fas fa-globe-americas me-2"></i> Global Mesh Routing</h2>
+            
+            <div class="map-container">
+                <!-- Advanced CSS Masking renders the detailed world map here -->
+                <div class="world-map-bg"></div>
+                
+                <!-- JavaScript dynamically injects absolute-positioned HTML elements here to represent active datacenters -->
+                <div id="geo-nodes-layer"></div>
+            </div>
+
+            <!-- Detailed Telemetry Drawer: Slides up from the bottom when an active/completed node is hovered -->
+            <div id="telemetry-drawer" class="drawer hidden">
+                <div class="drawer-header">
+                    <h3 id="drawer-region-name">us-central1</h3>
+                    <button id="close-drawer"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="drawer-stats">
+                    <div class="stat-box"><span class="stat-label">Velocity</span><span id="drawer-tps" class="stat-value text-highlight">--</span></div>
+                    <div class="stat-box"><span class="stat-label">Min Lat</span><span id="drawer-min" class="stat-value">--</span></div>
+                    <div class="stat-box"><span class="stat-label">Avg Lat</span><span id="drawer-avg" class="stat-value">--</span></div>
+                </div>
+                <div class="drawer-api">
+                    <label>REST API URL:</label>
+                    <div class="api-url-wrapper">
+                        <input type="text" id="drawer-url" readonly>
+                        <button id="btn-copy-url" class="cyber-icon-btn" title="Copy URL"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <!-- Holds specific API errors (404, 400, etc.) if the ping fails -->
+                    <div id="drawer-diagnosis" class="diagnosis-text hidden"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 3: EXECUTIVE SUMMARY (Percentile Heuristic Engine Outputs)   -->
+        <!-- ------------------------------------------------------------------- -->
+        <section class="panel summary-panel">
+            <h2><i class="fas fa-chart-line me-2"></i> Analytics Engine</h2>
+            
+            <!-- Top 33% Datacenters based on Token Velocity (TPS) -->
+            <div class="summary-card card-primary">
+                <h3>[+] Primary Hubs (Top Percentile)</h3>
+                <p class="desc">Champion regions yielding maximum Token Velocity.</p>
+                <ul id="list-primary" class="hub-list">
+                    <li class="muted">Awaiting Telemetry...</li>
+                </ul>
+            </div>
+
+            <!-- Remaining Datacenters that successfully responded (200 OK) -->
+            <div class="summary-card card-secondary">
+                <h3>[~] Secondary Hubs</h3>
+                <p class="desc">Operational regions with standard/mid-tier routing performance.</p>
+                <ul id="list-secondary" class="hub-list">
+                    <li class="muted">Awaiting Telemetry...</li>
+                </ul>
+            </div>
+
+            <!-- Critical Failures: EULA Blocks, Hardware Deserts, Control Plane Outages -->
+            <div class="summary-card card-warning hidden" id="card-anomalies">
+                <h3><i class="fas fa-exclamation-triangle me-2"></i> Infrastructure Anomalies</h3>
+                <p class="desc">Hardware deserts, catalog lag, or missing EULAs detected.</p>
+                <ul id="list-anomalies" class="hub-list warning-text">
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================================= -->
+    <!-- DATA BRIDGE: Python to JavaScript                                       -->
+    <!-- Injects the REGIONS dictionary into a script tag so app.js can map it.  -->
+    <!-- ======================================================================= -->
+    <script id="regions-data" type="application/json">
+        {{ regions | tojson | safe }}
+    </script>
+
+    <!-- Primary Frontend Logic -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

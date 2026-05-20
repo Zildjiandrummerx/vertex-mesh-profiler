@@ -41,8 +41,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application files into the container
 COPY . .
 
+# Ensure the dual-execution router script is executable by the Linux OS.
+RUN chmod +x entrypoint.sh
+
 # Transfer ownership of all files to the secure non-root user
 RUN chown -R appuser:appuser /app
+
+# Give the unprivileged user a writable home directory for Gunicorn temp files.
+# This prevents the [Errno 13] Permission denied error during worker boot.
+ENV HOME=/tmp
 
 # Switch Linux context to the secure user
 USER appuser
@@ -59,10 +66,14 @@ ENV PORT=8080
 EXPOSE 8080
 
 # ==========================================
-# PRODUCTION WSGI SERVER (GUNICORN)
+# DUAL-EXECUTION ROUTER & PRODUCTION SERVER
 # ==========================================
-# We do not use 'flask run' (which is only for local development).
-# Gunicorn handles concurrent requests efficiently.
-# *CRITICAL UPGRADE*: Added --timeout 120. Generative AI API calls can take 
-# 45-90 seconds. Without this flag, Gunicorn will kill the worker at 30 seconds.
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", "--timeout", "120", "wsgi:app"]
+# We utilize an entrypoint script to toggle between CLI mode and Web UI mode.
+# ENTRYPOINT forces all 'docker run' commands to pass through our router script.
+# CMD passes 'webui' as the default argument if nothing else is provided.
+# 
+# *CRITICAL NOTE ON GUNICORN*: When the router boots Web UI mode, it passes 
+# the --timeout 120 flag. Generative AI API calls can take 45-90 seconds. 
+# Without this flag, Gunicorn will kill the worker at the default 30 seconds.
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["webui"]
