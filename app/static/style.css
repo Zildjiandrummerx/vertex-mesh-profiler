@@ -97,7 +97,9 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
     padding: 20px;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Allow independent scrolling within columns */
+    overflow-y: auto; 
+    /* CRITICAL FIX: Clamps the CSS Grid so the zoomed map cannot crush the side menus */
+    min-width: 0; 
 }
 .panel h2 { 
     font-size: 1.1rem; 
@@ -197,40 +199,56 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
 }
 
 /* --- COLUMN 2: MAP & NODES --- */
-/* The container for the SVG and injected absolute-positioned nodes */
 .map-panel { position: relative; padding: 0; overflow: hidden;}
 .map-panel h2 { padding: 20px 20px 0 20px; position: absolute; z-index: 10; }
+
 .map-container {
     width: 100%; height: 100%;
     position: relative;
     background-color: #0d0f12; 
+    overflow: hidden; /* Acts as a strict camera lens cropping everything outside */
+    border-radius: 12px;
 }
 
-/* Plague Inc. Style Geospatial Rendering via CSS Masking */
+/* 
+ * The Absolute Geometry Anchor: 
+ * width: 140% applies the massive 'Plague Inc.' zoom.
+ * aspect-ratio: 2/1 locks the SVG dimensions so the JS coordinates never drift.
+ * top/left 50% and translate perfectly centers the zoomed map within the lens.
+ */
+.map-anchor {
+    position: absolute;
+    width: 140%; 
+    aspect-ratio: 2 / 1; 
+    top: 50%;
+    left: 50%;
+    /* Centers X, and shifts Y slightly down to perfectly frame the Northern Hemisphere */
+    transform: translate(-50%, -42%);
+}
+
+/* Plague Inc. Style Geospatial Rendering */
 .world-map-bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-color: var(--highlight); /* Paints the map neon green */
+    background-color: var(--highlight); 
     
-    /* Pulls an open-source equirectangular SVG map to use as a stencil */
     -webkit-mask-image: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg');
     mask-image: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg');
     
-    -webkit-mask-size: cover;
-    mask-size: cover;
-    -webkit-mask-position: center;
-    mask-position: center;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     
-    opacity: 0.15; /* Achieves the transparent "radar" look */
+    opacity: 0.15; 
     z-index: 1;
 }
 
-/* The Geo-Nodes (Injected via JS) */
+/* The Geo-Nodes */
 #geo-nodes-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5;
 }
+
 .geo-node {
     position: absolute;
     transform: translate(-50%, -50%);

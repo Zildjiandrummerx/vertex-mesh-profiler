@@ -98,11 +98,11 @@
             <h2><i class="fas fa-globe-americas me-2"></i> Global Mesh Routing</h2>
             
             <div class="map-container">
-                <!-- Advanced CSS Masking renders the detailed world map here -->
-                <div class="world-map-bg"></div>
-                
-                <!-- JavaScript dynamically injects absolute-positioned HTML elements here to represent active datacenters -->
-                <div id="geo-nodes-layer"></div>
+                <!-- Absolute Geometry Anchor: Prevents Flexbox shrinking and locks node coordinates -->
+                <div class="map-anchor">
+                    <div class="world-map-bg"></div>
+                    <div id="geo-nodes-layer"></div>
+                </div>
             </div>
 
             <!-- Detailed Telemetry Drawer: Slides up from the bottom when an active/completed node is hovered -->
@@ -172,6 +172,6 @@
     </script>
 
     <!-- Primary Frontend Logic -->
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
