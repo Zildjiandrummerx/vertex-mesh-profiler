@@ -16,6 +16,7 @@
 *.pem
 credentials.json
 client_secret.json
+local_keys.json
 
 # ==========================================
 # 2. THE LEGACY MONOLITH (QUARANTINED)
