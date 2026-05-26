@@ -12,6 +12,7 @@ import { DOM } from './dom.js';
 import { initUIBindings, openTelemetryDrawer } from './ui.js';
 import { initMapNodes, updateNodeState, updateNodeLabel } from './map.js';
 import { updateExecutiveSummary } from './analytics.js';
+import { initCameraPhysics } from './camera.js'; 
 
 // ==============================================================================
 // GLOBAL STATE
@@ -20,8 +21,9 @@ const REGIONS_REGISTRY = getRegionsRegistry();
 let currentTelemetryResults = [];
 let isRunning = false;
 
-// Initialize tactile UX elements
+// Initialize tactile UX elements and the Pan/Zoom Camera
 initUIBindings(REGIONS_REGISTRY);
+initCameraPhysics();
 
 // ==============================================================================
 // ASYNCHRONOUS API PIPELINE

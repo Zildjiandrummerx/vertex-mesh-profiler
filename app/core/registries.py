@@ -126,7 +126,8 @@ REGIONS = {
     "Europe & Africa": [
         "africa-south1", "europe-west1", "europe-north1", "europe-west3", 
         "europe-west2", "europe-southwest1", "europe-west8", "europe-west4", 
-        "europe-west9", "europe-west12", "europe-central2", "europe-west6"
+        "europe-west9", "europe-west12", "europe-central2", "europe-west6",
+        "europe-west10", "europe-north2"
     ],
     "Asia Pacific & Middle East": [
         "asia-east2", "asia-southeast2", "australia-southeast2", "asia-south1", 

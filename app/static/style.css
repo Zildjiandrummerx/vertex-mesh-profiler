@@ -211,19 +211,22 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
 }
 
 /* 
- * The Absolute Geometry Anchor: 
- * width: 140% applies the massive 'Plague Inc.' zoom.
- * aspect-ratio: 2/1 locks the SVG dimensions so the JS coordinates never drift.
- * top/left 50% and translate perfectly centers the zoomed map within the lens.
+ * The Geometry Anchor: 
+ * width: 100% ensures it stretches coast-to-coast in the center column.
+ * height: 100% + object-fit mechanics ensures it fills the void vertically.
+ * aspect-ratio locks the 2:1 SVG proportions permanently.
+ * 
+ * NOTE: Initial transform is now handled by camera.js for pan/zoom.
  */
 .map-anchor {
-    position: absolute;
-    width: 140%; 
+    position: relative;
+    /* Remove max-width and force it to fill the entire column width */
+    width: 100%; 
+    min-height: 100%;
     aspect-ratio: 2 / 1; 
-    top: 50%;
-    left: 50%;
-    /* Centers X, and shifts Y slightly down to perfectly frame the Northern Hemisphere */
-    transform: translate(-50%, -42%);
+    flex-shrink: 0; 
+    transform-origin: center center;
+    transition: transform 0.1s ease-out; /* Smooths the mouse-wheel zoom */
 }
 
 /* Plague Inc. Style Geospatial Rendering */
@@ -254,8 +257,10 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
     transform: translate(-50%, -50%);
     display: flex; flex-direction: column; align-items: center;
     cursor: pointer; z-index: 5;
-    transition: transform 0.2s;
+    /* Forces the inverse-scale to smoothly match the camera zoom */
+    transition: transform 0.1s ease-out; 
 }
+
 .geo-node:hover { transform: translate(-50%, -50%) scale(1.1); z-index: 10;}
 .node-dot {
     width: 14px; height: 14px; border-radius: 50%;
