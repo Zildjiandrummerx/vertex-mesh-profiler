@@ -113,14 +113,16 @@ MODELS = {
 # ============================================================================
 # Fully supports the complex regional availability matrix required by the 
 # Open and Partner models (e.g., us-east5 for Llama/Claude, us-central1 for DeepSeek)
+
 REGIONS = {
     "Macro-Regions (Global Load Balanced)": ["us", "eu", "global"],
     "United States": [
         "us-east5", "us-south1", "us-central1", "us-west4", 
         "us-west2", "us-east1", "us-east4", "us-west1", "us-west3"
     ],
-    "Canada & South America": [
+    "Canada, Mexico & South America": [
         "northamerica-northeast1", "northamerica-northeast2", 
+        "northamerica-south1",
         "southamerica-west1", "southamerica-east1"
     ],
     "Europe & Africa": [
@@ -130,9 +132,11 @@ REGIONS = {
         "europe-west10", "europe-north2"
     ],
     "Asia Pacific & Middle East": [
-        "asia-east2", "asia-southeast2", "australia-southeast2", "asia-south1", 
-        "asia-south2", "asia-northeast2", "asia-northeast3", "asia-southeast1", 
-        "australia-southeast1", "asia-east1", "asia-northeast1",
-        "me-central2", "me-central1", "me-west1"
+        "asia-east1", "asia-east2", 
+        "asia-northeast1", "asia-northeast2", "asia-northeast3", 
+        "asia-south1", "asia-south2", 
+        "asia-southeast1", "asia-southeast2", 
+        "australia-southeast1", "australia-southeast2",
+        "me-central1", "me-central2", "me-west1"
     ]
 }
