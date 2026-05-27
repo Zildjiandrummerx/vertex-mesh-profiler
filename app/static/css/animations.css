@@ -1,0 +1,30 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: KEYFRAME ANIMATIONS                                                */
+/* ========================================================================== */
+/* Centralizes all CSS @keyframes used across the application for visual      */
+/* physics, button gradients, and map node telemetry rendering.               */
+/* ========================================================================== */
+
+/* Brand Logo Pulse */
+@keyframes pulse-glow {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Radar ping effect for active node testing */
+@keyframes radar-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(77, 166, 255, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(77, 166, 255, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(77, 166, 255, 0); }
+}
+
+/* 
+ * Continuous sliding gradient for the execution button.
+ * Trajectory: 0% to 200% forces the optical flow from Left to Right (>>>).
+ */
+@keyframes gradient-shift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}

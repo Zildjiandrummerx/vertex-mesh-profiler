@@ -21,7 +21,7 @@ const REGIONS_REGISTRY = getRegionsRegistry();
 let currentTelemetryResults = [];
 let isRunning = false;
 
-// Initialize tactile UX elements and the Pan/Zoom Camera
+// Initialize tactile UX elements
 initUIBindings(REGIONS_REGISTRY);
 initCameraPhysics();
 
@@ -47,6 +47,17 @@ async function pingRegion(model, region, maxTokens) {
             })
         });
         
+        // INTERCEPT FLASK-LIMITER HTML RESPONSES
+        // If the operator exceeds the Flask-Limiter firewall, the backend returns
+        // an HTML 429 error page. We must intercept this BEFORE calling response.json()
+        // to prevent a JSON parsing SyntaxError in the browser console.
+        if (response.status === 429) {
+            throw new Error("HTTP 429 (TOO MANY REQUESTS): Mesh Profiler internal rate limit exceeded. Please wait before initiating another sweep.");
+        }
+        if (!response.ok && response.headers.get("content-type")?.indexOf("application/json") === -1) {
+             throw new Error(`HTTP ${response.status}: Internal Server Error (Non-JSON payload detected).`);
+        }
+
         const result = await response.json();
         
         const telemetryObj = {
@@ -69,7 +80,17 @@ async function pingRegion(model, region, maxTokens) {
         }
 
     } catch (error) {
-        console.error(`Fetch failed for ${region}:`, error);
+        // Automatically traps our 429 Error override and updates the UI state
+        console.error(`Fetch failed for ${region}:`, error.message);
+        
+        // Push the formatted error to the results array so the user can read it in the Drawer
+        currentTelemetryResults.push({
+            region: region,
+            success: false,
+            tps: 0, min: 0, avg: 0, url: 'Internal Profiler API',
+            error: error.message
+        });
+        
         updateNodeState(region, 'error');
     }
 }

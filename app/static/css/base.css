@@ -1,0 +1,76 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: BASE STYLES & VARIABLES                                            */
+/* ========================================================================== */
+/* Establishes the core 'Manjaro Dark' cyber-ops color palette, global DOM    */
+/* resets, base typography, and custom WebKit scrollbar styling.              */
+/* ========================================================================== */
+
+:root {
+    /* Base OS-level dark scheme rendering */
+    color-scheme: dark; 
+    
+    /* Core Backgrounds */
+    --bg-color: #121417;          /* Deep void background for body */
+    --card-bg: #1a1c21;           /* Elevated panels */
+    --border-color: #2b2e36;      /* Subtle panel dividers */
+    
+    /* Typography */
+    --text-color: #f8f9fa;        /* Primary white/gray */
+    --muted-color: #9ba1a8;       /* De-emphasized text (helper labels) */
+    
+    /* Inputs */
+    --input-bg: #22252b;          
+    --input-border: #444a57;
+    
+    /* Brand & Accents (The Manjaro Greens) */
+    --highlight: #00ff87;         /* Neon primary highlight */
+    --mid-green: #00bfa5;         /* Secondary teal */
+    --brand-gradient: linear-gradient(135deg, #00ff87 0%, #00bfa5 100%);
+    --brand-text: #051911;        /* Dark text for inside gradient buttons */
+    
+    /* Dynamic Feedback Tints (Used for Info/Warning Boxes) */
+    --info-bg: rgba(0, 255, 135, 0.05);
+    --info-border: rgba(0, 255, 135, 0.2);
+    --warning-text: #fdbb2d;      /* Amber yellow */
+    --warning-bg: rgba(253, 187, 45, 0.05); 
+    --warning-border: rgba(253, 187, 45, 0.2);
+    --error-text: #ff4757;        /* Pure red for critical errors (404/500) */
+}
+
+/* Global Reset to ensure cross-browser rendering consistency */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent body scrolling; internal panels scroll independently */
+}
+
+/* --- TYPOGRAPHY & HELPERS --- */
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+.text-highlight { color: var(--highlight); font-weight: 700; }
+.muted { color: var(--muted-color); font-style: italic; }
+.hidden { display: none !important; }
+.me-2 { margin-right: 0.5rem; } /* FontAwesome Icon Spacing */
+
+/* --- CUSTOM SCROLLBARS --- */
+/* Overrides default OS scrollbars for WebKit browsers to maintain the dark aesthetic */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-color); 
+}
+::-webkit-scrollbar-thumb {
+    background: var(--input-border); 
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-color); 
+}

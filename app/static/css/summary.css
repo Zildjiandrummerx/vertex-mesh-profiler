@@ -1,0 +1,27 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: ANALYTICS SUMMARY                                                  */
+/* ========================================================================== */
+/* Dictates the visual presentation of the heuristic engine outputs in        */
+/* Column 3, formatting arrays of primary hubs and anomalies.                 */
+/* ========================================================================== */
+
+.summary-card {
+    border-radius: 8px; padding: 16px; margin-bottom: 16px;
+    border-left: 4px solid; background-color: var(--input-bg);
+}
+.summary-card h3 { font-size: 0.95rem; margin-bottom: 6px; }
+.summary-card .desc { font-size: 0.8rem; color: var(--muted-color); margin-bottom: 12px; }
+
+/* Tiered Card Styling */
+.card-primary { border-color: var(--highlight); background-color: var(--info-bg); }
+.card-primary h3 { color: var(--highlight); }
+.card-secondary { border-color: var(--muted-color); }
+.card-warning { border-color: var(--error-text); background-color: rgba(255, 71, 87, 0.05); }
+.card-warning h3 { color: var(--error-text); }
+
+/* Dynamic List Items */
+.hub-list { list-style: none; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+.hub-list li { padding: 6px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;}
+.hub-list li:last-child { border-bottom: none; }
+.hub-list .tps-val { color: var(--text-color); font-weight: 700; }

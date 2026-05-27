@@ -1,0 +1,127 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: GEOSPATIAL MAP & TELEMETRY DRAWER                                  */
+/* ========================================================================== */
+/* Handles the CSS Masking projection for the world map, geospatial node      */
+/* rendering, node states, and the interactive telemetry pop-up drawer.       */
+/* ========================================================================== */
+
+.map-panel { position: relative; padding: 0; overflow: hidden;}
+.map-panel h2 { padding: 20px 20px 0 20px; position: absolute; z-index: 10; }
+
+.map-container {
+    width: 100%; height: 100%;
+    position: relative;
+    background-color: #0d0f12; 
+    overflow: hidden; /* Acts as a strict camera lens cropping everything outside */
+    border-radius: 12px;
+}
+
+/* 
+ * The Geometry Anchor: 
+ * width: 100% ensures it stretches coast-to-coast in the center column.
+ * height: 100% + object-fit mechanics ensures it fills the void vertically.
+ * aspect-ratio locks the 2:1 SVG proportions permanently.
+ * NOTE: Initial transform is now handled by camera.js for pan/zoom.
+ */
+.map-anchor {
+    position: relative;
+    width: 100%; 
+    min-height: 100%;
+    aspect-ratio: 2 / 1; 
+    flex-shrink: 0; 
+    transform-origin: center center;
+    transition: transform 0.1s ease-out; /* Smooths the mouse-wheel zoom */
+}
+
+/* Geospatial Rendering via CSS Masking */
+.world-map-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--highlight); 
+    
+    -webkit-mask-image: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg');
+    mask-image: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg');
+    
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    
+    opacity: 0.15; 
+    z-index: 1;
+}
+
+/* --- THE GEO-NODES --- */
+#geo-nodes-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5;
+}
+
+.geo-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; z-index: 5;
+    /* Forces the inverse-scale to smoothly match the camera zoom */
+    transition: transform 0.1s ease-out; 
+}
+
+.geo-node:hover { transform: translate(-50%, -50%) scale(1.1); z-index: 10;}
+.node-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background-color: var(--input-bg); border: 2px solid var(--muted-color);
+}
+.node-label {
+    margin-top: 6px; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-color); padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--border-color); color: var(--muted-color);
+}
+
+/* Node Dynamic States (Managed by JS class toggles) */
+.geo-node.state-testing .node-dot {
+    border-color: #4da6ff; background-color: rgba(77, 166, 255, 0.2);
+    box-shadow: 0 0 0 0 rgba(77, 166, 255, 0.7);
+    animation: radar-pulse 1.5s infinite; /* Active network ping simulation */
+}
+.geo-node.state-success .node-dot { border-color: var(--highlight); background-color: var(--highlight); box-shadow: 0 0 10px var(--highlight); }
+.geo-node.state-success .node-label { color: var(--highlight); border-color: var(--highlight); }
+.geo-node.state-error .node-dot { border-color: var(--error-text); background-color: var(--error-text); box-shadow: 0 0 10px var(--error-text); }
+.geo-node.state-error .node-label { color: var(--error-text); border-color: var(--error-text); }
+.geo-node.state-warning .node-dot { border-color: var(--warning-text); background-color: var(--warning-text); }
+
+/* --- TELEMETRY DRAWER --- */
+/* Slide-up detail view when clicking a node */
+.drawer {
+    position: absolute; bottom: 20px; left: 20px; right: 20px;
+    background: rgba(26, 28, 33, 0.95);
+    backdrop-filter: blur(10px); border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 20px;
+    transform: translateY(0); transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 20; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+.drawer.hidden { transform: translateY(120%); opacity: 0; pointer-events: none;}
+.drawer-header { display: flex; justify-content: space-between; margin-bottom: 16px;}
+.drawer-header h3 { font-family: 'JetBrains Mono', monospace; color: var(--highlight); }
+#close-drawer { background: none; border: none; color: var(--text-color); font-size: 1.2rem; cursor: pointer; }
+.drawer-stats { display: flex; gap: 24px; margin-bottom: 16px; }
+.stat-box { display: flex; flex-direction: column; }
+.stat-label { font-size: 0.75rem; color: var(--muted-color); text-transform: uppercase; margin-bottom: 4px;}
+.stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700; }
+.drawer-api label { font-size: 0.75rem; color: var(--muted-color); display: block; margin-bottom: 4px;}
+.drawer-api input { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--muted-color); padding: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; border-radius: 4px; outline: none; }
+.diagnosis-text { margin-top: 12px; font-size: 0.85rem; color: var(--warning-text); padding: 10px; background: var(--warning-bg); border-left: 3px solid var(--warning-text); border-radius: 4px;}
+
+/* API Copy Button */
+.api-url-wrapper { display: flex; gap: 8px; align-items: center; }
+.cyber-icon-btn {
+    background: var(--input-bg); border: 1px solid var(--input-border); color: var(--muted-color);
+    padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+}
+.cyber-icon-btn:hover { color: var(--highlight); border-color: var(--highlight); }
+
+/* Clickable Links inside the Diagnosis Error Box */
+.drawer-link {
+    color: var(--highlight); text-decoration: none; border-bottom: 1px dashed var(--highlight);
+    transition: all 0.2s; word-break: break-all;
+}
+.drawer-link:hover { color: #ffffff; border-bottom-color: #ffffff; }

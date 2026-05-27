@@ -1,0 +1,53 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: MACRO LAYOUT & GRID                                                */
+/* ========================================================================== */
+/* Governs the primary 3-column CSS Grid architecture, panel containers, and  */
+/* the persistent top navigation bar.                                         */
+/* ========================================================================== */
+
+/* --- TOPBAR --- */
+/* Persistent top navigation denoting system identity and status */
+.topbar {
+    height: 60px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand h1 { font-size: 1.2rem; margin: 0; }
+.brand span { color: var(--highlight); }
+
+/* --- GRID LAYOUT --- */
+/* 3-column CSS Grid allocating specific widths to Inputs and Summaries, 
+   leaving the center column (map) to consume remaining (1fr) space. */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 340px;
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 60px); /* Fill remaining height below topbar */
+}
+
+/* Base container for all 3 columns */
+.panel {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; 
+    /* Clamps the CSS Grid so the zoomed center map cannot crush the side menus */
+    min-width: 0; 
+}
+.panel h2 { 
+    font-size: 1.1rem; 
+    margin-bottom: 24px; 
+    color: var(--muted-color); 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em;
+}
