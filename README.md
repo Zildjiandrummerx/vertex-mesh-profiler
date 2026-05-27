@@ -5,6 +5,8 @@ The **Vertex AI Mesh Profiler** is an enterprise-grade diagnostic engine designe
 
 When architecting AI applications, choosing a region is not just about proximity; it's about hardware availability and model propagation. This tool allows Cloud Architects to identify "Champion" regions and "Hardware Deserts" before deploying production code.
 
+---
+
 ## Advanced Diagnostic Engine & Core Objectives
 * **Dual-Mode Architecture (Web UI & CLI):** Operates on a Hexagonal Architecture. The core telemetry engine is completely decoupled from the presentation layer, allowing you to run interactive terminal scans (CLI) or launch a highly animated, real-time geospatial dashboard (Web UI).
 * **Tri-State Polyglot Execution:** Natively supports routing for Google Gemini, Partner Models (Anthropic), and Open-MaaS models (Meta Llama, Mistral, xAI Grok, DeepSeek).
@@ -30,12 +32,13 @@ The profiler uses Application Default Credentials (ADC). Authenticate your termi
 ```bash
 gcloud auth application-default login
 ```
-(Note: If running inside a browser-based Google Cloud Shell, copy the generated `.json file` to your local directory as `local_keys.json` to prevent ephemeral `/tmp` deletion, the credentials file is often deleted when the ephemeral container spins down). 
+(⚠️ **Note:** If you are running this inside a browser-based Google Cloud Shell, the credentials file is often deleted when the ephemeral container spins down. Furthermore, Docker's unprivileged internal user requires read access to this file. Copy the generated `.json file` to your local directory as `local_keys.json` to prevent ephemeral `/tmp` deletion.)
 
-Run this exact command immediately after logging in to copy the credentials safely to your project folder:
+Run these commands immediately after logging in to copy the credentials safely to your project folder:
 
 ```bash
 cp ~/.config/gcloud/application_default_credentials.json ./local_keys.json
+chmod 644 ./local_keys.json
 ```
 
 ---
@@ -49,7 +52,7 @@ docker build -t vertex-mesh-profiler .
 ```
 
 ### Launching Web UI Mode (Real-Time Dashboard)
-This mode boots the Gunicorn production server. It requires port 8080 to be mapped to your host. Once running, open your browser to http://localhost:8080 (or use "Web Preview -> Preview on port 8080" in Cloud Shell).
+This mode boots the Gunicorn production server. It requires `port 8080` to be mapped to your host. Once running, open your browser to `http://localhost:8080` (or use **"Web Preview -> Preview** on `port 8080`" in Cloud Shell).
 
 # For Google Cloud Shell (Using the `local_keys.json` workaround):
 
@@ -96,7 +99,7 @@ docker run --rm -it \
   vertex-mesh-profiler cli
 ```
 
-(For macOS/Linux/Windows CLI execution, use the exact volume mapping -v strings from the Web UI examples above, but remove -p 8080:8080 and replace webui with cli at the end).
+(For macOS/Linux/Windows CLI execution, use the exact volume mapping `-v` strings from the Web UI examples above, but remove `-p 8080:8080` and replace `webui` with `cli` at the end).
 
 ---
 
