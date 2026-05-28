@@ -63,15 +63,38 @@ def ping_datacenter():
     api_version = data.get("api_version", "v1")
     prompt = data.get("prompt", "Ping")
     
-    # Safely cast max_tokens to integer
-    try:
-        max_tokens = int(data.get("max_tokens", 20))
-    except (ValueError, TypeError):
-        max_tokens = 20
-
     if not model_id or not location:
         return jsonify({"error": "Missing required parameters: model, region"}), 400
 
+    # ========================================================================
+    # ZERO TRUST VALIDATION PERIMETER
+    # ========================================================================
+    
+    # Safely casts max_tokens to an integer and enforces strict minimum and 
+    # maximum boundaries (1 to 1024). This ensures anomalous client-side values 
+    # cannot trigger downstream payload rejections from the cloud provider.
+    try:
+        raw_tokens = int(data.get("max_tokens", 20))
+        max_tokens = max(1, min(1024, raw_tokens))
+    except (ValueError, TypeError):
+        max_tokens = 20
+
+    # Cross-references inbound payload parameters against the authoritative 
+    # Python registries. This ensures only officially supported models and 
+    # physical datacenters are routed to the execution engine, actively rejecting 
+    # arbitrary string injections.
+    valid_models = [m for group in MODELS.values() for m in group]
+    valid_regions = [r for group in REGIONS.values() for r in group]
+
+    if model_id not in valid_models:
+        return jsonify({"success": False, "error": "HTTP 400: Unauthorized model parameter detected."}), 400
+        
+    if location not in valid_regions:
+        return jsonify({"success": False, "error": "HTTP 400: Unauthorized region parameter detected."}), 400
+
+    # ========================================================================
+    # TELEMETRY EXECUTION
+    # ========================================================================
     try:
         # Execute the core telemetry logic.
         # use_cli_spinner=False ensures we don't attempt terminal animations in web logs.
@@ -105,5 +128,5 @@ def health_check():
     """
     return jsonify({
         "status": "healthy", 
-        "engine": "Vertex AI Mesh Profiler API"
+        "engine": "GilgaMesh Profiler API"
     }), 200

@@ -6,21 +6,27 @@
 /* radio pills, sliders, and the primary execution button.                    */
 /* ========================================================================== */
 
+/* --- FORM SPACING --- */
+/* Enforces consistent vertical rhythm between discrete control sections */
 .input-group { margin-bottom: 24px; }
 .input-group label { display: block; font-size: 0.85rem; margin-bottom: 8px; color: var(--muted-color); }
 
-/* --- DROPDOWN MENUS --- */
+/* ========================================================================== */
+/* DROPDOWN MENUS                                                             */
+/* ========================================================================== */
+/* Strips the native operating system styling (appearance: none) to enforce   */
+/* a uniform, dark-mode aesthetic across all browser engines. Injects a       */
+/* custom SVG chevron encoded as a data URI to replace the default arrow.     */
 .cyber-select {
     width: 100%;
     background-color: var(--input-bg);
     color: var(--text-color);
     border: 1px solid var(--input-border);
-    padding: 10px 36px 10px 10px; /* Offset padding to accommodate custom SVG chevron */
+    padding: 10px 36px 10px 10px; 
     border-radius: 6px;
     font-family: 'Inter', sans-serif;
     outline: none;
     
-    /* Override native OS dropdown arrows to maintain cohesive dark aesthetic */
     appearance: none;
     -webkit-appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ba1a8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -36,8 +42,11 @@
     padding: 10px;
 }
 
-/* --- RADIO PILLS (Scope Toggle) --- */
-/* Hides default radio buttons and styles labels to look like connected buttons */
+/* ========================================================================== */
+/* RADIO PILLS (Scope Toggle)                                                 */
+/* ========================================================================== */
+/* Hides standard HTML radio buttons and styles their associated <label>      */
+/* elements to function as a contiguous, interactive segment control.         */
 .radio-pill-group {
     display: flex;
     background-color: var(--input-bg);
@@ -53,16 +62,22 @@
     transition: all 0.2s ease;
 }
 .radio-pill-group label:last-child { border-right: none; }
+
+/* Active state rendering for the selected segment */
 .radio-pill-group input[type="radio"]:checked + label {
     background-color: rgba(0, 255, 135, 0.1);
     color: var(--highlight);
     font-weight: 600;
 }
 
-/* --- TOKEN CAP SLIDER & INFO BOXES --- */
-/* Dynamic color state (accentColor) is injected via JS based on value */
+/* ========================================================================== */
+/* TOKEN CAP SLIDER & INFO BOXES                                              */
+/* ========================================================================== */
+/* The slider's accentColor is dynamically mutated via JavaScript to visually */
+/* reflect the severity of the current inference load profile.                */
 .cyber-slider { width: 100%; margin-bottom: 12px; accent-color: var(--highlight); }
 
+/* Contextual rendering for dynamic physics explanations and compliance warnings */
 .info-box {
     padding: 12px; border-radius: 6px; font-size: 0.8rem; line-height: 1.4;
     border-left: 3px solid; transition: all 0.3s ease;
@@ -71,7 +86,25 @@
 .standard-box { background: var(--info-bg); border-color: var(--highlight); color: var(--highlight); }
 .stress-box { background: var(--warning-bg); border-color: var(--warning-text); color: var(--warning-text); }
 
-/* --- EXECUTION BUTTON --- */
+/* Defines the aesthetic for EULA compliance and authorization warnings */
+.warning-box { 
+    background: var(--warning-bg); 
+    border-color: var(--warning-text); 
+    color: var(--text-color); 
+}
+.warning-box .warning-title { 
+    color: var(--warning-text); 
+    font-weight: 600; 
+    margin-bottom: 4px; 
+}
+
+/* ========================================================================== */
+/* EXECUTION BUTTON                                                           */
+/* ========================================================================== */
+/* Handles the primary orchestration trigger, including idle, disabled, and   */
+/* active execution states.                                                   */
+
+/* Default Interactive State */
 .cyber-btn {
     margin-top: auto; width: 100%; padding: 16px;
     background: var(--brand-gradient);
@@ -79,7 +112,7 @@
     border: none; border-radius: 6px;
     font-size: 1rem; font-weight: 800; letter-spacing: 0.05em;
     cursor: pointer; transition: opacity 0.2s;
-    background-size: 200% auto; /* Required to allow the background to pan during animations */
+    background-size: 200% auto; /* Required to support panning background animations */
 }
 .cyber-btn:hover { opacity: 0.9; }
 
@@ -91,9 +124,10 @@
 }
 
 /* 
- * Active execution state injected by the JS orchestrator during an API sweep.
+ * Active Scanning State (Injected by JS during API polling)
  * Utilizes a high-contrast, multi-stop linear gradient (Deep Green -> Teal -> Neon).
- * This structure creates a pronounced glowing "hotspot" that translates across the DOM element.
+ * This structure creates a pronounced glowing "hotspot" that translates across the 
+ * DOM element to indicate continuous background processing.
  */
 .cyber-btn.btn-scanning:disabled {
     background: linear-gradient(90deg, 

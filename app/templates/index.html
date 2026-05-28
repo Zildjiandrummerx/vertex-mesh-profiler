@@ -33,15 +33,22 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
 <body>
 
     <!-- ======================================================================= -->
-    <!-- HEADER: BRANDING & SYSTEM STATUS                                        -->
+    <!-- HEADER: BRANDING, ACTIONS & SYSTEM STATUS                               -->
     <!-- ======================================================================= -->
     <header class="topbar">
         <div class="brand">
             <i class="fas fa-network-wired text-highlight me-2" style="font-size: 1.2rem;"></i>
             <h1>GilgaMesh <span>AI MODEL PROFILER</span></h1>
         </div>
-        <div class="status-indicator">
-            SYSTEM: <span id="system-status-text" class="text-highlight">READY</span>
+        
+        <!-- Topbar Controls: Hosts the HA Simulator trigger and live system state -->
+        <div style="display: flex; align-items: center; gap: 24px;">
+            <button id="btn-ha-simulator" class="cyber-icon-btn" title="High Availability Architecture Simulator">
+                <i class="fas fa-project-diagram me-2"></i>HA SIMULATOR
+            </button>
+            <div class="status-indicator">
+                SYSTEM: <span id="system-status-text" class="text-highlight">READY</span>
+            </div>
         </div>
     </header>
 
@@ -93,15 +100,21 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
                 </select>
             </div>
 
-            <!-- Dynamic Load Profile Slider: Controls the token count and auto-adjusts the underlying prompt payload -->
+            <!-- Dynamic Load Profile Slider: Controls the token cap and auto-adjusts the underlying prompt payload -->
             <div class="input-group load-profile-group">
                 <label for="token-slider">Inference Cap (Tokens): <span id="token-display" class="text-highlight">20</span></label>
                 <input type="range" id="token-slider" min="1" max="1024" value="20" class="cyber-slider">
                 
-                <!-- This info box changes text/color via JS based on the slider thresholds (Edges) -->
+                <!-- Inference Profile Physics Context -->
                 <div id="profile-explanation" class="info-box diagnostic-box">
                     <strong>Diagnostic Ping</strong><br>
                     Measuring Network Latency and TTFT. Sustained TPS will appear mathematically lower due to handshake overhead.
+                </div>
+
+                <!-- Dynamic Compliance Warning: Toggled via JavaScript when Third-Party/Open models are targeted -->
+                <div id="eula-warning" class="info-box warning-box hidden" style="margin-top: 12px;">
+                    <div class="warning-title"><i class="fas fa-shield-alt me-2"></i>EULA Required</div>
+                    To profile Partner or Open-MaaS models, you must first enable the model and accept its End User License Agreement (EULA) in the Agent Platform Model Garden. Failure to do so will result in a 404 (Not Found) routing error.
                 </div>
             </div>
 
@@ -140,7 +153,7 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
                         <input type="text" id="drawer-url" readonly>
                         <button id="btn-copy-url" class="cyber-icon-btn" title="Copy URL"><i class="fas fa-copy"></i></button>
                     </div>
-                    <!-- Holds specific API errors (404, 400, etc.) if the ping fails -->
+                    <!-- Holds specific API errors and contextual runbooks (404, 400, etc.) if the ping fails -->
                     <div id="drawer-diagnosis" class="diagnosis-text hidden"></div>
                 </div>
             </div>
@@ -152,7 +165,7 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
         <section class="panel summary-panel">
             <h2><i class="fas fa-chart-line me-2"></i> Analytics Engine</h2>
             
-            <!-- Top 33% Datacenters based on Token Velocity (TPS) -->
+            <!-- Top Percentile Datacenters based on Token Velocity (TPS) -->
             <div class="summary-card card-primary">
                 <h3>[+] Primary Hubs (Top Percentile)</h3>
                 <p class="desc">Champion regions yielding maximum Token Velocity.</p>
@@ -182,6 +195,14 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
     </main>
 
     <!-- ======================================================================= -->
+    <!-- HIGH AVAILABILITY (HA) SIMULATOR OVERLAY                                -->
+    <!-- ======================================================================= -->
+    <!-- Dormant Glassmorphism modal wrapper utilized for routing simulations -->
+    <div id="ha-simulator-modal" class="modal-overlay hidden">
+        <!-- Structural payload injected during Phase 2 -->
+    </div>
+
+    <!-- ======================================================================= -->
     <!-- DATA BRIDGE: Python to JavaScript                                       -->
     <!-- Injects the REGIONS dictionary into a script tag so app.js can map it.  -->
     <!-- ======================================================================= -->
@@ -189,7 +210,7 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
         {{ regions | tojson | safe }}
     </script>
 
-    <!-- Primary Frontend Logic -->
+    <!-- Primary Frontend Logic Orchestrator -->
     <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

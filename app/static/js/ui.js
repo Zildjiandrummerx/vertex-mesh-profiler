@@ -10,12 +10,36 @@
 
 import { DOM } from './dom.js';
 
+// ==============================================================================
+// CONTEXTUAL RUNBOOKS (Error Diagnostics)
+// ==============================================================================
+// Injected into the telemetry drawer upon capturing specific HTTP fault codes
+// to provide operators with immediate, authoritative documentation and context.
+const ERROR_CONTEXT = {
+    '400': {
+        text: "This error is often a 'catch-all' for resource issues. Common reasons a request is rejected before processing include exceeding limits or hardware unavailability.",
+        link: "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/quotas",
+        linkText: "Agent Platform Quotas and Limits"
+    },
+    '404': {
+        text: "The requested model version was not found in this region's local catalog. Specific versions (like -001 or -002) have distinct lifecycles and may not be available in every regional registry even if the parent model is.",
+        link: "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions",
+        linkText: "Agent Platform Model Versions and Lifecycle"
+    },
+    '501': {
+        text: "This error typically occurs when a region is not yet 'onboarded' for Generative AI. The Generative AI Locations page lists exactly which regions support which models. If a region isn't on this list, it will throw a 501.",
+        link: "https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/locations",
+        linkText: "Generative AI on Agent Platform locations"
+    }
+};
+
 /**
  * Initializes all event listeners for the control panel inputs.
  * @param {object} REGIONS_REGISTRY - The Python-injected geospatial database.
  */
 export function initUIBindings(REGIONS_REGISTRY) {
     
+    // Updates the DOM state of the region dropdown based on the selected routing scope
     function updateRegionDropdown() {
         const scope = document.querySelector('input[name="scope"]:checked').value;
         DOM.regionSelect.innerHTML = '';
@@ -35,6 +59,20 @@ export function initUIBindings(REGIONS_REGISTRY) {
     DOM.scopeRadios.forEach(radio => radio.addEventListener('change', updateRegionDropdown));
     updateRegionDropdown();
 
+    // Evaluates model taxonomy to enforce EULA compliance warnings
+    DOM.modelSelect.addEventListener('change', () => {
+        const selectedOption = DOM.modelSelect.options[DOM.modelSelect.selectedIndex];
+        const optgroupLabel = selectedOption.parentElement.label;
+        
+        // Triggers the compliance warning if a Third-Party or Open-MaaS model is selected
+        if (!optgroupLabel.includes('Google Vertex AI')) {
+            DOM.eulaWarning.classList.remove('hidden');
+        } else {
+            DOM.eulaWarning.classList.add('hidden');
+        }
+    });
+
+    // Mutates slider styling and info-box text to reflect the current load profile
     DOM.tokenSlider.addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
         DOM.profileExplanation.className = 'info-box';
@@ -64,6 +102,7 @@ export function initUIBindings(REGIONS_REGISTRY) {
         DOM.drawer.classList.add('hidden');
     });
 
+    // Invokes the Clipboard API to copy the current REST API path
     DOM.btnCopyUrl.addEventListener('click', () => {
         navigator.clipboard.writeText(DOM.drawerUrl.value).then(() => {
             DOM.btnCopyUrl.innerHTML = '<i class="fas fa-check"></i>';
@@ -92,12 +131,24 @@ export function openTelemetryDrawer(region, currentTelemetryResults) {
     DOM.drawerUrl.value = data.url;
 
     if (!data.success) {
+        // Formats generic URLs found within the payload into interactive anchors
         const urlRegex = /(https?:\/\/[^\s"']+)/g;
         let linkedText = data.error.replace(urlRegex, function(url) {
             const cleanUrl = url.replace(/["',]+$/, ''); 
             return `<a href="${cleanUrl}" target="_blank" class="drawer-link">${cleanUrl}</a>`;
         });
-        DOM.drawerDiagnosis.innerHTML = `Diagnosis: ${linkedText}`;
+        
+        // Evaluates HTTP fault codes and injects authoritative documentation context
+        let contextHtml = '';
+        if (data.error.includes('400')) {
+            contextHtml = `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);"><strong>Context:</strong> ${ERROR_CONTEXT['400'].text}<br><a href="${ERROR_CONTEXT['400'].link}" target="_blank" class="drawer-link" style="display:inline-block; margin-top:6px;"><i class="fas fa-external-link-alt me-2"></i>${ERROR_CONTEXT['400'].linkText}</a></div>`;
+        } else if (data.error.includes('404')) {
+            contextHtml = `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);"><strong>Context:</strong> ${ERROR_CONTEXT['404'].text}<br><a href="${ERROR_CONTEXT['404'].link}" target="_blank" class="drawer-link" style="display:inline-block; margin-top:6px;"><i class="fas fa-external-link-alt me-2"></i>${ERROR_CONTEXT['404'].linkText}</a></div>`;
+        } else if (data.error.includes('501')) {
+            contextHtml = `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);"><strong>Context:</strong> ${ERROR_CONTEXT['501'].text}<br><a href="${ERROR_CONTEXT['501'].link}" target="_blank" class="drawer-link" style="display:inline-block; margin-top:6px;"><i class="fas fa-external-link-alt me-2"></i>${ERROR_CONTEXT['501'].linkText}</a></div>`;
+        }
+
+        DOM.drawerDiagnosis.innerHTML = `<strong>Diagnosis:</strong> ${linkedText} ${contextHtml}`;
         DOM.drawerDiagnosis.classList.remove('hidden');
     } else {
         DOM.drawerDiagnosis.classList.add('hidden');
