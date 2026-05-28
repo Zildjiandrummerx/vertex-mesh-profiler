@@ -22,6 +22,28 @@
 
 /* Dynamic List Items */
 .hub-list { list-style: none; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
-.hub-list li { padding: 6px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;}
+.hub-list li { 
+    padding: 8px 6px; 
+    border-bottom: 1px solid var(--border-color); 
+    display: flex; 
+    justify-content: space-between;
+    transition: background-color 0.2s, padding-left 0.2s;
+    border-radius: 4px;
+}
 .hub-list li:last-child { border-bottom: none; }
 .hub-list .tps-val { color: var(--text-color); font-weight: 700; }
+
+/* Interactive State for Clickable Routing Links */
+.interactive-item { cursor: pointer; }
+.interactive-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding-left: 10px; /* Slight indentation on hover to signify clickability */
+}
+
+/* Strict 2-Column CSS Grid for Anomaly Formatting to prevent label wrapping */
+.anomaly-item {
+    display: grid !important; 
+    grid-template-columns: 140px 1fr; 
+    gap: 12px; 
+    align-items: start;
+}

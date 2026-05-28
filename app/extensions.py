@@ -13,11 +13,12 @@ from flask_limiter.util import get_remote_address
 
 csrf = CSRFProtect()
 
-# ARCHITECTURAL UPDATE: 
-# A single "Global Sweep" fires ~45 concurrent API requests.
-# The previous limit of "50 per hour" caused instant self-inflicted 429 blockades.
-# Limits are now calibrated for high-frequency internal testing.
+# Initialize the global rate limiter.
+# Base limits are configured for standard HTML payload traffic. 
+# Note: High-throughput API routes are explicitly exempted in the application 
+# factory to prevent false-positive 429 blockades for clients operating behind 
+# a shared NAT or VPN gateway.
 limiter = Limiter(
     key_func=get_remote_address, 
-    default_limits=["5000 per day", "500 per hour", "100 per minute"]
+    default_limits=["5000 per day", "1000 per hour"]
 )

@@ -1,5 +1,6 @@
 /**
  * ==============================================================================
+ * ENTERPRISE MULTI-MODEL GENAI FRAMEWORK
  * MODULE: DOM ELEMENT CACHE
  * ==============================================================================
  * Centralized cache for all DOM elements to prevent redundant querying 
@@ -16,6 +17,9 @@ export const DOM = {
     profileExplanation: document.getElementById('profile-explanation'),
     btnInitiate: document.getElementById('btn-initiate'),
     modelSelect: document.getElementById('model-select'),
+    
+    // Header & HUD
+    systemStatusText: document.getElementById('system-status-text'),
     
     // Map Engine
     mapLayer: document.getElementById('geo-nodes-layer'),

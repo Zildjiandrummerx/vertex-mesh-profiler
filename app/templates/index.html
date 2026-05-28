@@ -1,9 +1,20 @@
+<!--
+==============================================================================
+ENTERPRISE MULTI-MODEL GENAI FRAMEWORK
+MODULE: PRIMARY WEB DASHBOARD (HTML5)
+==============================================================================
+Serves as the master Document Object Model (DOM) structure for the GilgaMesh 
+Profiler Web UI. Implements a rigid 3-column CSS Grid architecture. Utilizes 
+Jinja2 templating to bridge Python backend registries with frontend inputs, 
+and securely orchestrates the loading of all modular CSS and ES6 JS assets.
+==============================================================================
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertex AI Mesh Profiler</title>
+    <title>GilgaMesh Profiler</title>
     
     <!-- Modular Manjaro Dark Theme Stylesheets & Animations -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
@@ -26,10 +37,12 @@
     <!-- ======================================================================= -->
     <header class="topbar">
         <div class="brand">
-            <span class="logo-pulse"></span>
-            <h1>VERTEX AI <span>MESH PROFILER</span></h1>
+            <i class="fas fa-network-wired text-highlight me-2" style="font-size: 1.2rem;"></i>
+            <h1>GilgaMesh <span>AI MODEL PROFILER</span></h1>
         </div>
-        <div class="status-indicator">SYSTEM: <span class="text-highlight">ONLINE</span></div>
+        <div class="status-indicator">
+            SYSTEM: <span id="system-status-text" class="text-highlight">READY</span>
+        </div>
     </header>
 
     <!-- ======================================================================= -->
@@ -110,7 +123,7 @@
                 </div>
             </div>
 
-            <!-- Detailed Telemetry Drawer: Slides up from the bottom when an active/completed node is hovered -->
+            <!-- Detailed Telemetry Drawer: Slides up from the bottom when an active/completed node is clicked -->
             <div id="telemetry-drawer" class="drawer hidden">
                 <div class="drawer-header">
                     <h3 id="drawer-region-name">us-central1</h3>

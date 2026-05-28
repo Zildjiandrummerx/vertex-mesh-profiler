@@ -1,5 +1,6 @@
 /**
  * ==============================================================================
+ * ENTERPRISE MULTI-MODEL GENAI FRAMEWORK
  * MODULE: USER INTERFACE PHYSICS
  * ==============================================================================
  * Manages all tactile UX elements including the dynamic slider colors, 
@@ -11,10 +12,10 @@ import { DOM } from './dom.js';
 
 /**
  * Initializes all event listeners for the control panel inputs.
+ * @param {object} REGIONS_REGISTRY - The Python-injected geospatial database.
  */
 export function initUIBindings(REGIONS_REGISTRY) {
     
-    // 1. Regional Scope Dropdown Logic
     function updateRegionDropdown() {
         const scope = document.querySelector('input[name="scope"]:checked').value;
         DOM.regionSelect.innerHTML = '';
@@ -32,9 +33,8 @@ export function initUIBindings(REGIONS_REGISTRY) {
     }
 
     DOM.scopeRadios.forEach(radio => radio.addEventListener('change', updateRegionDropdown));
-    updateRegionDropdown(); // Initialize state
+    updateRegionDropdown();
 
-    // 2. Dynamic Load Profile Slider (The Edges)
     DOM.tokenSlider.addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
         DOM.profileExplanation.className = 'info-box';
@@ -60,12 +60,10 @@ export function initUIBindings(REGIONS_REGISTRY) {
         }
     });
 
-    // 3. Telemetry Drawer Close Button
     DOM.drawerClose.addEventListener('click', () => {
         DOM.drawer.classList.add('hidden');
     });
 
-    // 4. Copy API URL to Clipboard
     DOM.btnCopyUrl.addEventListener('click', () => {
         navigator.clipboard.writeText(DOM.drawerUrl.value).then(() => {
             DOM.btnCopyUrl.innerHTML = '<i class="fas fa-check"></i>';
@@ -80,10 +78,12 @@ export function initUIBindings(REGIONS_REGISTRY) {
 
 /**
  * Parses telemetry data and populates the slide-up UI Drawer.
+ * @param {string} region - The targeted datacenter.
+ * @param {Array} currentTelemetryResults - The master state array.
  */
 export function openTelemetryDrawer(region, currentTelemetryResults) {
     const data = currentTelemetryResults.find(r => r.region === region);
-    if (!data) return; // Node hasn't completed testing yet
+    if (!data) return; 
 
     DOM.drawerRegionName.textContent = region;
     DOM.drawerTps.textContent = data.success ? data.tps : 'FAIL';
@@ -92,10 +92,9 @@ export function openTelemetryDrawer(region, currentTelemetryResults) {
     DOM.drawerUrl.value = data.url;
 
     if (!data.success) {
-        // Regex to wrap URLs inside the raw error payload into clickable anchor tags
         const urlRegex = /(https?:\/\/[^\s"']+)/g;
         let linkedText = data.error.replace(urlRegex, function(url) {
-            const cleanUrl = url.replace(/["',]+$/, ''); // Strip trailing punctuation
+            const cleanUrl = url.replace(/["',]+$/, ''); 
             return `<a href="${cleanUrl}" target="_blank" class="drawer-link">${cleanUrl}</a>`;
         });
         DOM.drawerDiagnosis.innerHTML = `Diagnosis: ${linkedText}`;
@@ -105,4 +104,29 @@ export function openTelemetryDrawer(region, currentTelemetryResults) {
     }
 
     DOM.drawer.classList.remove('hidden');
+}
+
+/**
+ * Manages the color and messaging of the Header System Status HUD.
+ * @param {string} status - The system state enumeration.
+ */
+export function updateSystemStatus(status) {
+    switch(status) {
+        case 'READY':
+            DOM.systemStatusText.textContent = 'READY';
+            DOM.systemStatusText.style.color = 'var(--highlight)';
+            break;
+        case 'SCANNING':
+            DOM.systemStatusText.textContent = 'SCANNING MESH...';
+            DOM.systemStatusText.style.color = 'var(--warning-text)';
+            break;
+        case 'RATE_LIMITED':
+            DOM.systemStatusText.textContent = 'RATE LIMITED';
+            DOM.systemStatusText.style.color = 'var(--error-text)';
+            break;
+        case 'OFFLINE':
+            DOM.systemStatusText.textContent = 'OFFLINE (CHECK LOGS)';
+            DOM.systemStatusText.style.color = 'var(--error-text)';
+            break;
+    }
 }

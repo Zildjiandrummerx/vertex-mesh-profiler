@@ -41,12 +41,18 @@ def create_app() -> Flask:
     csrf.init_app(app)
     limiter.init_app(app)
     
-    # ARCHITECTURAL OVERRIDE: API CSRF EXEMPTION
-    # Because the `/api/v1/ping` endpoints are consumed asynchronously via 
+    # ========================================================================
+    # ARCHITECTURAL OVERRIDE: API EXEMPTIONS
+    # ========================================================================
+    # CSRF: Because the `/api/v1/ping` endpoints are consumed asynchronously via 
     # Vanilla JS fetch() operations without relying on stateful session cookies, 
-    # we exempt the primary blueprint from strict CSRF token validation to 
-    # allow the live dashboard physics to execute seamlessly.
+    # we exempt the primary blueprint from strict CSRF token validation.
+    #
+    # RATE LIMITING: The API is also exempted from the Limiter to support 
+    # high-density concurrent polling (e.g., full-matrix sweeps) without triggering 
+    # false-positive 429 errors for clients routing through unified NAT/VPN gateways.
     csrf.exempt(main_bp)
+    limiter.exempt(main_bp)
 
     # ========================================================================
     # ROUTING & BLUEPRINT REGISTRATION

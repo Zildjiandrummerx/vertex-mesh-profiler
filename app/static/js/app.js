@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * VERTEX AI MESH PROFILER - MASTER ORCHESTRATOR (ES6)
+ * GILGAMESH PROFILER - MASTER ORCHESTRATOR (ES6)
  * ==============================================================================
  * The primary entry point. Coordinates the UI, Map, and Analytics modules, 
  * and executes the asynchronous concurrency pipeline against the Flask API.
@@ -9,7 +9,7 @@
 
 import { getRegionsRegistry } from './config.js';
 import { DOM } from './dom.js';
-import { initUIBindings, openTelemetryDrawer } from './ui.js';
+import { initUIBindings, openTelemetryDrawer, updateSystemStatus } from './ui.js';
 import { initMapNodes, updateNodeState, updateNodeLabel } from './map.js';
 import { updateExecutiveSummary } from './analytics.js';
 import { initCameraPhysics } from './camera.js'; 
@@ -20,8 +20,9 @@ import { initCameraPhysics } from './camera.js';
 const REGIONS_REGISTRY = getRegionsRegistry();
 let currentTelemetryResults = [];
 let isRunning = false;
+let globalSystemHealth = 'READY'; // Tracks HUD lifecycle
 
-// Initialize tactile UX elements
+// Initialize tactile UX elements and the Pan/Zoom Camera
 initUIBindings(REGIONS_REGISTRY);
 initCameraPhysics();
 
@@ -47,14 +48,17 @@ async function pingRegion(model, region, maxTokens) {
             })
         });
         
-        // INTERCEPT FLASK-LIMITER HTML RESPONSES
-        // If the operator exceeds the Flask-Limiter firewall, the backend returns
-        // an HTML 429 error page. We must intercept this BEFORE calling response.json()
-        // to prevent a JSON parsing SyntaxError in the browser console.
+        // INTERCEPT HTTP 429 RATE LIMITS & FAULTS
+        // Modifies the globalSystemHealth state so the HUD permanently reflects 
+        // the degraded status even if other concurrent requests succeed.
         if (response.status === 429) {
+            globalSystemHealth = 'RATE_LIMITED';
+            updateSystemStatus(globalSystemHealth);
             throw new Error("HTTP 429 (TOO MANY REQUESTS): Mesh Profiler internal rate limit exceeded. Please wait before initiating another sweep.");
         }
         if (!response.ok && response.headers.get("content-type")?.indexOf("application/json") === -1) {
+             globalSystemHealth = 'OFFLINE';
+             updateSystemStatus(globalSystemHealth);
              throw new Error(`HTTP ${response.status}: Internal Server Error (Non-JSON payload detected).`);
         }
 
@@ -80,15 +84,19 @@ async function pingRegion(model, region, maxTokens) {
         }
 
     } catch (error) {
-        // Automatically traps our 429 Error override and updates the UI state
-        console.error(`Fetch failed for ${region}:`, error.message);
+        // MEMORY PROTECTION ALGORITHM
+        // Truncates catastrophic error payloads to prevent DOM/GPU Out Of Memory (OOM) faults.
+        const safeErrorMsg = error.message.length > 200 
+            ? error.message.substring(0, 200) + "... [Truncated for memory safety]"
+            : error.message;
+            
+        console.error(`Fetch failed for ${region}:`, safeErrorMsg);
         
-        // Push the formatted error to the results array so the user can read it in the Drawer
         currentTelemetryResults.push({
             region: region,
             success: false,
             tps: 0, min: 0, avg: 0, url: 'Internal Profiler API',
-            error: error.message
+            error: safeErrorMsg
         });
         
         updateNodeState(region, 'error');
@@ -117,32 +125,53 @@ DOM.btnInitiate.addEventListener('click', async () => {
         selectedRegions = Object.values(REGIONS_REGISTRY).flat();
     }
 
-    // Deduplicate
     selectedRegions = [...new Set(selectedRegions)];
 
-    // 2. Lock UI & Animate Button
+    // 2. Lock UI & Bind Initial HUD State
     isRunning = true;
+    globalSystemHealth = 'SCANNING';
+    updateSystemStatus(globalSystemHealth);
+    
     DOM.btnInitiate.disabled = true;
     DOM.btnInitiate.classList.add('btn-scanning');
     DOM.btnInitiate.textContent = 'SCANNING MESH...';
     currentTelemetryResults = [];
     
-    // 3. Setup Map (Passing the UI drawer callback to prevent circular dependencies)
+    // 3. Setup Map
     initMapNodes(selectedRegions, (regionClicked) => openTelemetryDrawer(regionClicked, currentTelemetryResults));
 
-    // 4. Batch Execution (Concurrency Control)
+    // Auto-Pan/Zoom Camera
+    if (typeof window.focusCameraOnRegions === 'function') {
+        window.focusCameraOnRegions(selectedRegions);
+    }
+
+    // 4. Batch Execution
     const BATCH_SIZE = 4;
     for (let i = 0; i < selectedRegions.length; i += BATCH_SIZE) {
         const batch = selectedRegions.slice(i, i + BATCH_SIZE);
         const promises = batch.map(region => pingRegion(model, region, maxTokens));
         
         await Promise.all(promises);
-        updateExecutiveSummary(currentTelemetryResults, selectedRegions);
+        
+        // Pass the callback to the Analytics Engine so it can route clicks back to the Map Drawer
+        updateExecutiveSummary(currentTelemetryResults, selectedRegions, (regionClicked) => openTelemetryDrawer(regionClicked, currentTelemetryResults));
     }
 
-    // 5. Unlock UI & Stop Animation
+    // 5. Unlock UI & Resolve Final HUD State
     isRunning = false;
     DOM.btnInitiate.disabled = false;
     DOM.btnInitiate.classList.remove('btn-scanning');
     DOM.btnInitiate.textContent = 'INITIATE PROFILER';
+    
+    // If the system survived the sweep without hitting limits or offline errors, return to READY
+    if (globalSystemHealth === 'SCANNING') {
+        globalSystemHealth = 'READY';
+        updateSystemStatus(globalSystemHealth);
+    }
+    
+    // 6. Single Scope Auto-Drawer Friction Reduction
+    // Automatically pops the telemetry drawer if the operator only targeted one datacenter
+    if (scope === 'single' && selectedRegions.length === 1) {
+        openTelemetryDrawer(selectedRegions[0], currentTelemetryResults);
+    }
 });
