@@ -13,6 +13,7 @@ import { initUIBindings, openTelemetryDrawer, updateSystemStatus } from './ui.js
 import { initMapNodes, updateNodeState, updateNodeLabel } from './map.js';
 import { updateExecutiveSummary } from './analytics.js';
 import { initCameraPhysics } from './camera.js'; 
+import { initSimulator } from './simulator.js';
 
 // ==============================================================================
 // GLOBAL STATE
@@ -22,9 +23,10 @@ let currentTelemetryResults = [];
 let isRunning = false;
 let globalSystemHealth = 'READY'; // Tracks HUD lifecycle
 
-// Initialize tactile UX elements and the Pan/Zoom Camera
+// Initialize tactile UX elements, Pan/Zoom Camera, and the HA Simulator
 initUIBindings(REGIONS_REGISTRY);
 initCameraPhysics();
+initSimulator();
 
 // ==============================================================================
 // ASYNCHRONOUS API PIPELINE

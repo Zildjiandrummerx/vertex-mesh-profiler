@@ -1,0 +1,128 @@
+/* ========================================================================== */
+/* ENTERPRISE MULTI-MODEL GENAI FRAMEWORK                                     */
+/* MODULE: HIGH AVAILABILITY SIMULATOR (GLASSMORPHISM)                        */
+/* ========================================================================== */
+/* Governs the modal overlay, dual-pane layout, terminal visualizer, and code */
+/* export formatting utilized in the architectural runbook simulations.       */
+/* ========================================================================== */
+
+/* --- MODAL OVERLAY --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(18, 20, 23, 0.85); 
+    backdrop-filter: blur(12px); 
+    z-index: 9000;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 1; transition: opacity 0.3s ease;
+}
+.modal-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.ha-modal-content {
+    width: 90%; max-width: 1400px; height: 85vh;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+
+.ha-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; border-bottom: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.2);
+}
+.ha-modal-header h2 { color: var(--highlight); margin: 0; font-size: 1.2rem; }
+.btn-close-modal { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
+
+/* --- DUAL-PANE GRID LAYOUT --- */
+.ha-modal-body {
+    display: grid; grid-template-columns: 350px 1fr; height: 100%; overflow: hidden;
+}
+
+/* Left Pane: Scenario Selector */
+.ha-sandbox-pane {
+    padding: 24px; border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column; gap: 20px; overflow-y: auto; background: var(--input-bg);
+}
+.scenario-btn {
+    width: 100%; padding: 16px; text-align: left;
+    background: var(--card-bg); border: 1px solid var(--input-border);
+    color: var(--text-color); border-radius: 8px; cursor: pointer;
+    transition: all 0.2s; font-family: 'Inter', sans-serif;
+}
+.scenario-btn:hover { border-color: var(--muted-color); }
+.scenario-btn.active {
+    background: var(--info-bg); border-color: var(--highlight);
+    box-shadow: inset 4px 0 0 var(--highlight);
+}
+.scenario-btn strong { display: block; margin-bottom: 4px; color: var(--highlight); }
+.scenario-btn span { font-size: 0.85rem; color: var(--muted-color); }
+
+/* Right Pane: Dynamic Content Container */
+.ha-code-pane {
+    padding: 24px; background: #121417; display: flex; flex-direction: column; overflow-y: auto; gap: 20px;
+}
+
+/* --- DOCUMENTATION BLOCKS --- */
+.doc-links-box {
+    background: rgba(255,255,255,0.02); border-left: 3px solid var(--mid-green);
+    padding: 16px; border-radius: 6px; font-size: 0.85rem; line-height: 1.5;
+}
+.doc-links-box a { color: var(--highlight); text-decoration: none; margin-bottom: 8px; display: inline-block; }
+.doc-links-box a:hover { text-decoration: underline; }
+
+/* System Context Notice (Liability Disclaimer) */
+.system-notice-box {
+    background: rgba(0, 255, 135, 0.03); 
+    border: 1px solid var(--border-color); 
+    padding: 14px; 
+    border-radius: 6px; 
+    margin-bottom: 16px;
+}
+.system-notice-title {
+    color: var(--highlight);
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+.system-notice-text {
+    color: var(--muted-color);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* --- TERMINAL VISUALIZER --- */
+.visualizer-box {
+    background: #000000; border-radius: 8px; border: 1px solid var(--border-color); 
+    position: relative; display: flex; flex-direction: column; 
+    min-height: 250px; max-height: 250px; flex-shrink: 0; 
+    font-family: 'JetBrains Mono', monospace; overflow-y: auto; overflow-x: hidden;
+    padding: 16px;
+}
+.vis-log { 
+    width: 100%; font-size: 0.8rem; line-height: 1.5; color: var(--muted-color); text-align: left;
+    white-space: pre-wrap; word-break: break-all;
+}
+
+/* Terminal Log Severities */
+.term-info { color: #8be9fd; }   
+.term-error { color: #ff5555; }  
+.term-success { color: #50fa7b; }
+.term-warning { color: #f1fa8c; }
+.term-timestamp { color: #6272a4; }
+
+/* --- CODE EXPORT SECTION --- */
+.code-wrapper { display: flex; flex-direction: column; flex-grow: 1; min-height: 300px; }
+.code-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; color: var(--muted-color); font-size: 0.85rem;
+}
+.ha-code-block {
+    flex-grow: 1; background: #000000; padding: 20px; border-radius: 8px;
+    border: 1px solid var(--border-color); color: #00ff87; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; overflow-y: auto; line-height: 1.5; white-space: pre-wrap;
+}
+.ha-code-block .comment { color: #6272a4; }
+.ha-code-block .keyword { color: #ff79c6; }

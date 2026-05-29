@@ -119,9 +119,15 @@
 }
 .cyber-icon-btn:hover { color: var(--highlight); border-color: var(--highlight); }
 
-/* Clickable Links inside the Diagnosis Error Box */
+/* Clickable Links inside the Diagnosis Error Box and Simulator Overlays */
+/* Removes persistent borders, relying on high-contrast color for interactivity */
 .drawer-link {
-    color: var(--highlight); text-decoration: none; border-bottom: 1px dashed var(--highlight);
-    transition: all 0.2s; word-break: break-all;
+    color: var(--highlight); 
+    text-decoration: none; 
+    transition: all 0.2s; 
+    word-break: break-all;
 }
-.drawer-link:hover { color: #ffffff; border-bottom-color: #ffffff; }
+.drawer-link:hover { 
+    color: #ffffff; 
+    text-decoration: underline; 
+}

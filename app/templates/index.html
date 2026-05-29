@@ -22,6 +22,7 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
     <link rel="stylesheet" href="{{ url_for('static', filename='css/controls.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/summary.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/simulator.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     
     <!-- Enterprise Typography: Inter for UI elements, JetBrains Mono for telemetry data -->
@@ -197,9 +198,59 @@ and securely orchestrates the loading of all modular CSS and ES6 JS assets.
     <!-- ======================================================================= -->
     <!-- HIGH AVAILABILITY (HA) SIMULATOR OVERLAY                                -->
     <!-- ======================================================================= -->
-    <!-- Dormant Glassmorphism modal wrapper utilized for routing simulations -->
     <div id="ha-simulator-modal" class="modal-overlay hidden">
-        <!-- Structural payload injected during Phase 2 -->
+        <div class="ha-modal-content">
+            
+            <div class="ha-modal-header">
+                <h2><i class="fas fa-project-diagram me-2"></i> High Availability (HA) Runbooks</h2>
+                <button id="btn-close-sim" class="btn-close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="ha-modal-body">
+                <!-- Left Pane: Scenario Selector -->
+                <div class="ha-sandbox-pane">
+                    <p class="muted" style="font-size: 0.85rem; margin-bottom: 10px;">Select a compliance scenario to visualize the routing architecture and generate the deployment script.</p>
+                    
+                    <button class="scenario-btn" data-scenario="global">
+                        <strong>1. Global Endpoint</strong>
+                        <span>Automatically pools capacity worldwide. No explicit failover code required.</span>
+                    </button>
+                    
+                    <button class="scenario-btn" data-scenario="multiregion">
+                        <strong>2. Multi-Region + Tenacity Backoff</strong>
+                        <span>Enforces strict Data Residency bounds while handling 429 spikes automatically.</span>
+                    </button>
+                    
+                    <button class="scenario-btn" data-scenario="custom">
+                        <strong>3. Custom Dictionary Failover</strong>
+                        <span>Explicit developer control. Physically shifts routing between defined datacenters upon failure.</span>
+                    </button>
+                </div>
+
+                <!-- Right Pane: Dynamic Content (Docs, Visualizer, Code) -->
+                <div class="ha-code-pane">
+                    <!-- Documentation Block -->
+                    <div id="ha-docs-block" class="doc-links-box"></div>
+                    
+                    <!-- Simulation Visualizer -->
+                    <div class="visualizer-box">
+                        <!-- Dynamic node array injected via JS -->
+                        <div id="sim-node-container" style="display: flex; gap: 15px; margin-bottom: 20px;"></div>
+                        <div id="sim-log" class="vis-log">Awaiting Simulation...</div>
+                    </div>
+
+                    <!-- Code Export Section -->
+                    <div class="code-wrapper">
+                        <div class="code-header">
+                            <span><i class="fab fa-python me-2"></i> Python Implementation</span>
+                            <button id="btn-copy-code" class="cyber-icon-btn"><i class="fas fa-copy"></i></button>
+                        </div>
+                        <pre id="ha-code-block" class="ha-code-block">Select a scenario to generate code.</pre>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- ======================================================================= -->

@@ -42,6 +42,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 script.py
 test_2.py
+retryTest.py
 deploy.sh
 
 # ==========================================

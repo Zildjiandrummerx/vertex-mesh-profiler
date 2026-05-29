@@ -117,6 +117,9 @@ export function initUIBindings(REGIONS_REGISTRY) {
 
 /**
  * Parses telemetry data and populates the slide-up UI Drawer.
+ * Evaluates execution state to inject either authoritative fault diagnostics
+ * or High Availability (HA) deployment transitions.
+ * 
  * @param {string} region - The targeted datacenter.
  * @param {Array} currentTelemetryResults - The master state array.
  */
@@ -151,7 +154,33 @@ export function openTelemetryDrawer(region, currentTelemetryResults) {
         DOM.drawerDiagnosis.innerHTML = `<strong>Diagnosis:</strong> ${linkedText} ${contextHtml}`;
         DOM.drawerDiagnosis.classList.remove('hidden');
     } else {
-        DOM.drawerDiagnosis.classList.add('hidden');
+        // INJECTION: High Availability Transition
+        // If the datacenter successfully responded, invite the operator to generate 
+        // a production-ready Python script utilizing this exact endpoint.
+        const championHtml = `
+            <div class="success-runbook-box">
+                <div class="success-runbook-title"><i class="fas fa-check-circle me-2"></i>High-Performance Hub Verified</div>
+                <div class="success-runbook-desc">This endpoint is responding optimally. Export a production-ready High Availability (HA) routing script configured specifically for this datacenter.</div>
+                <button id="btn-export-ha" class="btn-export-ha">
+                    <i class="fas fa-project-diagram me-2"></i> TEST IN HA SIMULATOR
+                </button>
+            </div>
+        `;
+        DOM.drawerDiagnosis.innerHTML = championHtml;
+        DOM.drawerDiagnosis.classList.remove('hidden');
+
+        // Binds the dynamically injected button to the Simulator Orchestrator
+        document.getElementById('btn-export-ha').addEventListener('click', () => {
+            // Extracts the Project ID dynamically from the REST URL string
+            const urlStr = DOM.drawerUrl.value;
+            const projectId = urlStr.includes('/projects/') ? urlStr.split('/projects/')[1].split('/')[0] : 'your-project-id';
+            const modelId = DOM.modelSelect.value;
+            
+            // Invokes the Simulator with the customized context payload
+            if (typeof window.launchSimulatorWithChampion === 'function') {
+                window.launchSimulatorWithChampion(region, modelId, projectId);
+            }
+        });
     }
 
     DOM.drawer.classList.remove('hidden');
